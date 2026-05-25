@@ -1,51 +1,78 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { ShieldSVG, PBanner } from "@/components/Atoms";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { NetworkBadge, PBanner } from "@/components/Atoms";
 import { C } from "@/lib/constants";
 
-export default function SendSuccess() {
+const explorerUrl = (signature: string) =>
+  `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
+
+function SendSuccessContent() {
   const router = useRouter();
-  const hash    = "0x" + Math.random().toString(16).slice(2,20);
-  const stealth = "0x" + Math.random().toString(16).slice(2,14);
+  const params = useSearchParams();
+  const signature = params.get("sig") || "";
+  const amount = params.get("amount") || "0";
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    await navigator.clipboard?.writeText(signature);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
 
   return (
     <div className="split">
       <div className="split-left">
-        <div style={{ position:"absolute", top:"20%", left:"-12%", width:480, height:480, borderRadius:"50%", background:`radial-gradient(circle,${C.accent}06,transparent 65%)`, pointerEvents:"none" }}/>
-        <div style={{ width:88, height:88, borderRadius:"50%", background:C.accentDim, border:`2px solid ${C.accentBrd}`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:40, animation:"glow 2s ease infinite" }}>
-          <svg width={40} height={40} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke={C.accent} strokeWidth="1.5"/><path d="M8 12l3 3 5-5" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <div className="success-orb">
+          <svg width={40} height={40} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke={C.accent} strokeWidth="1.5" /><path d="M8 12l3 3 5-5" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
-        <span className="lbl" style={{ color:C.accent, display:"block", marginBottom:18 }}>TRANSACTION COMPLETE</span>
-        <h1 className="d" style={{ fontSize:"clamp(44px,5.5vw,80px)", fontWeight:800, letterSpacing:"-.045em", color:C.text, lineHeight:.87, marginBottom:28 }}>
-          Payment Sent<br/><em style={{ color:C.accent }}>Successfully.</em>
-        </h1>
-        <p style={{ color:C.muted, fontSize:16, fontWeight:300, lineHeight:1.78, maxWidth:380, marginBottom:48 }}>
-          Funds routed to a one-time stealth address. The recipient's primary wallet was never exposed — to you, to observers, or recorded on-chain.
+        <span className="lbl" style={{ color: C.accent, display: "block", marginBottom: 18 }}>PRIVATE PAYMENT SENT</span>
+        <h1 className="d page-title">Payment<br /><em style={{ color: C.accent }}>Sent.</em></h1>
+        <p className="lead">
+          Your SOL transfer was submitted successfully. Solana transactions remain public; PrivoCash keeps the payment experience cleaner and more private.
         </p>
-        <div style={{ display:"flex", gap:12 }}>
-          <button className="btn bs" onClick={() => router.push("/send")}>Send Another</button>
-          <button className="btn bp" onClick={() => router.push("/")}>← Home</button>
+        <div className="action-row">
+          <button className="btn bs" onClick={copy}>{copied ? "Copied Signature" : "Copy Signature"}</button>
+          <a className="btn bp" href={explorerUrl(signature)} target="_blank" rel="noreferrer">View on Explorer</a>
         </div>
       </div>
+
       <div className="split-right">
-        <div style={{ maxWidth:480, width:"100%" }}>
-          <span className="lbl" style={{ display:"block", marginBottom:24 }}>TRANSACTION RECEIPT</span>
-          <div className="card" style={{ padding:36, marginBottom:20 }}>
-            {[["Amount","500 USDT"],["Token","USDT"],["Network","Ethereum"],["TX Hash",hash.slice(0,20)+"…"],["Stealth Address",stealth+"…"],["Privacy Level","Stealth · Unlinkable"]].map(([k,v]) => (
-              <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 0", borderBottom:`1px solid ${C.border}`, fontSize:14 }}>
-                <span style={{ color:C.muted }}>{k}</span>
-                <span className="m" style={{ color: k==="Privacy Level"?C.accent : k==="Stealth Address"?C.dim : C.text, maxWidth:"56%", textAlign:"right", wordBreak:"break-all" }}>{v}</span>
-              </div>
-            ))}
+        <div className="form-shell">
+          <span className="lbl" style={{ display: "block", marginBottom: 24 }}>PAYMENT RECEIPT</span>
+          <div className="card form-card">
+            <div className="receipt-list" style={{ margin: 0 }}>
+              {[
+                ["Type", "Private payment"],
+                ["Amount", `${amount} SOL`],
+                ["Network", "Solana"],
+                ["Signature", signature ? `${signature.slice(0, 24)}...` : "Unavailable"],
+                ["Status", "Sent"],
+              ].map(([k, v]) => (
+                <div key={k} className="receipt-row">
+                  <span>{k}</span>
+                  <span className="m">{v}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 20 }}><NetworkBadge /></div>
           </div>
-          <PBanner text="Stealth address is mathematically derived. No one can link it back to the recipient's primary wallet."/>
-          <button style={{ width:"100%", background:"none", border:`1px solid ${C.border}`, color:C.muted, cursor:"none", marginTop:14, fontSize:12, fontFamily:"'JetBrains Mono',monospace", padding:"13px", borderRadius:12, letterSpacing:".08em", transition:"all .18s" }}
-            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=C.borderHov;(e.currentTarget as HTMLElement).style.color=C.text;}}
-            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor=C.border;(e.currentTarget as HTMLElement).style.color=C.muted;}}>
-            VIEW ON EXPLORER ↗
-          </button>
+          <PBanner text="Keep this signature for your records." />
+          <div className="action-row" style={{ marginTop: 18 }}>
+            <button className="btn bs" onClick={() => router.push("/send")}>Send Another</button>
+            <button className="btn bp" onClick={() => router.push("/dashboard")}>View Dashboard</button>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SendSuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <SendSuccessContent />
+    </Suspense>
   );
 }

@@ -1,38 +1,36 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
 
-interface WalletCtx {
-  wallet: string | null;
-  connect: (addr: string) => void;
-  disconnect: () => void;
-  showModal: boolean;
-  openModal: () => void;
-  closeModal: () => void;
-}
+import { ReactNode, useMemo } from "react";
+import { ConnectionProvider, WalletProvider as SolanaWalletProvider, useWallet as useAdapterWallet } from "@solana/wallet-adapter-react";
+import { WalletModalProvider, useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
+import { clusterApiUrl } from "@solana/web3.js";
 
-const Ctx = createContext<WalletCtx>({
-  wallet: null,
-  connect: () => {},
-  disconnect: () => {},
-  showModal: false,
-  openModal: () => {},
-  closeModal: () => {},
-});
+export const SOLANA_RPC_URL =
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl("devnet");
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const [wallet, setWallet]       = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-
-  const connect    = (addr: string) => { setWallet(addr); setShowModal(false); };
-  const disconnect = ()             => setWallet(null);
-  const openModal  = ()             => setShowModal(true);
-  const closeModal = ()             => setShowModal(false);
+  const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
 
   return (
-    <Ctx.Provider value={{ wallet, connect, disconnect, showModal, openModal, closeModal }}>
-      {children}
-    </Ctx.Provider>
+    <ConnectionProvider endpoint={SOLANA_RPC_URL}>
+      <SolanaWalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>{children}</WalletModalProvider>
+      </SolanaWalletProvider>
+    </ConnectionProvider>
   );
 }
 
-export const useWallet = () => useContext(Ctx);
+export function useWallet() {
+  const adapter = useAdapterWallet();
+  const { setVisible } = useWalletModal();
+  const wallet = adapter.publicKey?.toBase58() ?? null;
+
+  return {
+    ...adapter,
+    wallet,
+    connected: adapter.connected,
+    openModal: () => setVisible(true),
+    closeModal: () => setVisible(false),
+  };
+}

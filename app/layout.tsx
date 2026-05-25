@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
+import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
 import { WalletProvider } from "@/lib/wallet-context";
-import Cursor from "@/components/Cursor";
 import Navbar from "@/components/Navbar";
 import WalletModal from "@/components/WalletModal";
 import UBg from "@/components/UBg";
 
 export const metadata: Metadata = {
-  title: "Privo Cash — Privacy Infrastructure for Crypto Payments",
+  title: "PrivoCash — Private Solana Payments",
   description:
-    "Send and receive cryptocurrency without exposing your wallet address. Powered by stealth address protocol — unlinkable, non-custodial, instant.",
+    "Create private payment links or send SOL privately from one simple interface.",
   keywords: [
-    "stealth address",
-    "private crypto payments",
-    "ERC-5564",
-    "privacy crypto",
+    "Solana payments",
+    "private payment links",
+    "Phantom wallet",
+    "payment privacy",
   ],
   openGraph: {
-    title: "Privo Cash",
+    title: "PrivoCash",
     description:
-      "Privacy infrastructure for crypto payments. Non-custodial. Unlinkable.",
+      "Create private Solana payment links or send SOL privately from one simple interface.",
     type: "website",
   },
 };
@@ -36,7 +36,6 @@ export default function RootLayout({
           {/* Fixed background layers */}
           <UBg />
           <div className="noise" />
-          <Cursor />
 
           {/* Nav + Modal */}
           <Navbar />

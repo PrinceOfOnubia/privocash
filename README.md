@@ -1,11 +1,12 @@
-# Privo Cash — Next.js App Router
+# PrivoCash — Solana Payments
 
-Privacy infrastructure for crypto payments. Stealth address protocol, non-custodial, EVM-compatible.
+Create private payment links or send SOL privately from one simple interface.
 
 ## Stack
-- **Next.js 14** — App Router
-- **TypeScript**
-- **React 18**
+
+- Next.js 14 App Router
+- TypeScript
+- React 18
 - Unicorn Studio background (`q74MturjEeRrERoc3hmn`)
 
 ## Quick Start
@@ -13,83 +14,29 @@ Privacy infrastructure for crypto payments. Stealth address protocol, non-custod
 ```bash
 npm install
 npm run dev
-# → http://localhost:3000
-```
-
-## Project Structure
-
-```
-privo-cash/
-├── app/
-│   ├── globals.css          ← All design system styles
-│   ├── layout.tsx           ← Root layout (providers, cursor, Unicorn, Navbar)
-│   ├── page.tsx             ← Landing (intro zoom → landing page)
-│   ├── send/
-│   │   ├── page.tsx         ← Send stealth payment
-│   │   └── success/page.tsx ← Transaction confirmed
-│   ├── create/
-│   │   ├── page.tsx         ← Create PayLink
-│   │   └── success/page.tsx ← Link created + QR
-│   ├── pay/
-│   │   ├── [id]/page.tsx    ← Dynamic payment link (payer view)
-│   │   └── success/page.tsx ← Payment completed
-│   └── dashboard/page.tsx   ← Activity, links, sent history
-├── components/
-│   ├── Atoms.tsx            ← All shared UI atoms
-│   ├── Cursor.tsx           ← Custom cursor
-│   ├── Navbar.tsx           ← Fixed nav with wallet display
-│   ├── UBg.tsx              ← Unicorn Studio background
-│   └── WalletModal.tsx      ← Wallet connect modal
-└── lib/
-    ├── constants.ts         ← Design tokens, chains, mock data
-    ├── hooks.ts             ← useReveal, useCounter, useScrolled
-    └── wallet-context.tsx   ← Global wallet state (React Context)
 ```
 
 ## Routes
 
 | Route | Description |
-|-------|-------------|
-| `/` | Landing page (intro + full marketing) |
-| `/send` | Send stealth payment to wallet |
-| `/send/success` | Payment confirmed |
-| `/create` | Create payment link |
-| `/create/success` | Link created + share |
-| `/pay/[id]` | Payer view — dynamic route |
-| `/pay/success` | Payment completed |
-| `/dashboard` | Activity & links dashboard |
+| --- | --- |
+| `/` | Solana-only landing page |
+| `/create` | Create a private Solana payment link |
+| `/create/success` | Link details, copy actions, and payment details |
+| `/send` | Pay privately by entering recipient address and SOL amount |
+| `/send/success` | Mock direct private payment receipt |
+| `/pay/[id]` | Payer and recipient status/claim flow |
+| `/pay/success` | Mock payment receipt |
+| `/dashboard` | Created links, statuses, and copy/view actions |
 
-## Key Design Decisions
+## Product Boundaries
 
-- **App Router** — each page is a Server Component boundary; all interactive pages use `"use client"`
-- **Wallet state** — React Context (`WalletProvider`) in root layout; no external state lib needed
-- **No CSS-in-JS** — all styles in `globals.css` using plain class names; avoids SSR hydration issues
-- **Unicorn Studio** — loaded via client-side script injection to avoid SSR conflicts
-- **Custom cursor** — RAF-based, 60fps, client-side only
+- Only Solana and SOL payments are active in the UI.
+- Phantom is the primary wallet flow.
+- Payment-link and private-payment records live in `lib/payment-service.ts`.
+- The product does not claim complete transaction invisibility. Solana network activity remains public.
 
-## Connect Real Wallet (Web3)
+## Integration Points
 
-Replace the mock `connect()` in `WalletModal.tsx` with your preferred library:
-
-```bash
-# Option A — wagmi + viem (recommended for EVM)
-npm install wagmi viem @tanstack/react-query
-
-# Option B — ethers.js
-npm install ethers
-
-# Option C — Web3Modal
-npm install @web3modal/wagmi wagmi viem
-```
-
-## Stealth Address Implementation
-
-Replace the mock stealth derivation in send flows with ERC-5564:
-
-```bash
-npm install @stealth-address/sdk
-# or
-npm install @metamask/eth-sig-util
-```
-
-The stealth address derivation happens in `/app/send/page.tsx` → `confirm()` function.
+- Move payment-link and private-payment records from browser storage to durable backend storage.
+- Add server-side status indexing for Solana transaction signatures.

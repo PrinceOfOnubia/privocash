@@ -1,53 +1,76 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { PBanner } from "@/components/Atoms";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { NetworkBadge, PBanner } from "@/components/Atoms";
 import { C } from "@/lib/constants";
 
-export default function PaySuccess() {
+const explorerUrl = (signature: string) =>
+  `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
+
+function PaySuccessContent() {
   const router = useRouter();
-  const hash   = "0x" + Math.random().toString(16).slice(2,22);
+  const params = useSearchParams();
+  const id = params.get("id") || "";
+  const signature = params.get("sig") || "";
+  const amount = params.get("amount") || "0";
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    await navigator.clipboard?.writeText(signature);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
 
   return (
     <div className="split">
       <div className="split-left">
-        <div style={{ position:"absolute", top:"20%", left:"-12%", width:480, height:480, borderRadius:"50%", background:`radial-gradient(circle,${C.accent}06,transparent 65%)`, pointerEvents:"none" }}/>
-        <div style={{ width:88, height:88, borderRadius:"50%", background:C.accentDim, border:`2px solid ${C.accentBrd}`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:40, animation:"glow 2s ease infinite" }}>
-          <svg width={40} height={40} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke={C.accent} strokeWidth="1.5"/><path d="M8 12l3 3 5-5" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <div className="success-orb">
+          <svg width={40} height={40} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke={C.accent} strokeWidth="1.5" /><path d="M8 12l3 3 5-5" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
-        <span className="lbl" style={{ color:C.accent, display:"block", marginBottom:18 }}>PAYMENT COMPLETE</span>
-        <h1 className="d" style={{ fontSize:"clamp(44px,5.5vw,80px)", fontWeight:800, letterSpacing:"-.045em", color:C.text, lineHeight:.87, marginBottom:28 }}>
-          Payment<br/><em style={{ color:C.accent }}>Completed.</em>
-        </h1>
-        <p style={{ color:C.muted, fontSize:16, fontWeight:300, lineHeight:1.78, maxWidth:380, marginBottom:48 }}>
-          Sent successfully via stealth protocol. The recipient's identity was never visible to you, to chain observers, or recorded on-chain.
+        <span className="lbl" style={{ color: C.accent, display: "block", marginBottom: 18 }}>PAYMENT COMPLETE</span>
+        <h1 className="d page-title">Payment<br /><em style={{ color: C.accent }}>Completed.</em></h1>
+        <p className="lead">
+          The payment was submitted successfully. Keep the transaction signature for your records.
         </p>
-        <div style={{ display:"flex", gap:12 }}>
-          <button className="btn bs">View on Explorer ↗</button>
-          <button className="btn bp" onClick={() => router.push("/")}>Return Home</button>
+        <div className="action-row">
+          <button className="btn bs" onClick={copy}>{copied ? "Copied Signature" : "Copy Signature"}</button>
+          <a className="btn bp" href={explorerUrl(signature)} target="_blank" rel="noreferrer">View on Explorer</a>
         </div>
       </div>
+
       <div className="split-right">
-        <div style={{ maxWidth:480, width:"100%" }}>
-          <span className="lbl" style={{ display:"block", marginBottom:24 }}>PAYMENT RECEIPT</span>
-          <div className="card" style={{ padding:36, marginBottom:20 }}>
-            {[["Amount","500 USDT"],["Token","USDT"],["Network","Ethereum"],["TX Hash",hash.slice(0,24)+"…"],["Privacy","Stealth · Unlinkable"]].map(([k,v]) => (
-              <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 0", borderBottom:`1px solid ${C.border}`, fontSize:14 }}>
-                <span style={{ color:C.muted }}>{k}</span>
-                <span className="m" style={{ color: k==="Privacy"?C.accent:C.text, maxWidth:"56%", textAlign:"right", wordBreak:"break-all" }}>{v}</span>
-              </div>
-            ))}
+        <div className="form-shell">
+          <span className="lbl" style={{ display: "block", marginBottom: 24 }}>PAYMENT RECEIPT</span>
+          <div className="card form-card">
+            <div className="receipt-list" style={{ margin: 0 }}>
+              {[
+                ["Link", `privo.cash/pay/${id}`],
+                ["Amount", `${amount} SOL`],
+                ["Network", "Solana"],
+                ["Signature", signature ? `${signature.slice(0, 24)}...` : "Unavailable"],
+                ["Status", "Paid"],
+              ].map(([k, v]) => (
+                <div key={k} className="receipt-row">
+                  <span>{k}</span>
+                  <span className="m">{v}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 20 }}><NetworkBadge /></div>
           </div>
-          <PBanner text="Transaction routed via stealth addressing. No wallet linkage recorded on-chain."/>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginTop:16 }}>
-            {[["STATUS","Confirmed ✓",C.ok],["BLOCK","#21,450,844",""]].map(([l,v,c]) => (
-              <div key={l} style={{ padding:"16px 20px", background:"rgba(255,255,255,.025)", borderRadius:14, border:`1px solid ${C.border}` }}>
-                <div className="lbl" style={{ marginBottom:8 }}>{l}</div>
-                <div className="m" style={{ fontSize:16, fontWeight:700, color:c||C.text }}>{v}</div>
-              </div>
-            ))}
-          </div>
+          <PBanner text="Solana transactions remain public. PrivoCash keeps the payment experience cleaner and more private." />
+          <button className="btn bs full-mobile" style={{ marginTop: 16, width: "100%" }} onClick={() => router.push("/dashboard")}>View Dashboard</button>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaySuccess() {
+  return (
+    <Suspense fallback={null}>
+      <PaySuccessContent />
+    </Suspense>
   );
 }

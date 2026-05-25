@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { C, F, CHAINS, TOKENS, EXPIRY } from "@/lib/constants";
+import { C, F, SOLANA_NETWORK, TOKENS, EXPIRY } from "@/lib/constants";
 
 // ── Arrow ──────────────────────────────────────────────────────
 export const Arr = ({ sz = 15 }: { sz?: number }) => (
@@ -25,7 +25,7 @@ export const ShieldSVG = ({ sz = 20, col = C.accent }: { sz?: number; col?: stri
 
 // ── Logo ───────────────────────────────────────────────────────
 export const Logo = ({ onClick, sz = 26 }: { onClick?: () => void; sz?: number }) => (
-  <div onClick={onClick} data-c style={{ display:"flex", alignItems:"center", gap:11, cursor:"none" }}>
+  <div onClick={onClick} data-c style={{ display:"flex", alignItems:"center", gap:11, cursor:"pointer" }}>
     <div style={{ width:sz, height:sz, borderRadius:9, background:C.accent, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 0 22px ${C.accent}55` }}>
       <ShieldSVG sz={sz * .6} col="#fff"/>
     </div>
@@ -44,33 +44,16 @@ export const PBanner = ({ text }: { text: string }) => (
   </div>
 );
 
-// ── Chain Pills ────────────────────────────────────────────────
-export const ChainPills = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-    {Object.entries(CHAINS).map(([k, v]) => (
-      <button key={k} className="chain"
-        onClick={() => onChange(k)}
-        style={{ background: value===k ? v.color+"22" : "rgba(255,255,255,.04)", borderColor: value===k ? v.color+"60" : C.border, color: value===k ? v.color : C.muted }}>
-        <span style={{ width:6, height:6, borderRadius:"50%", background:v.color, display:"inline-block" }}/>
-        {k}
-      </button>
-    ))}
-  </div>
+export const NetworkBadge = () => (
+  <span className="chain tag" style={{ background: `${SOLANA_NETWORK.color}14`, borderColor: `${SOLANA_NETWORK.color}40`, color: SOLANA_NETWORK.color, border: "1px solid" }}>
+    <span style={{ width: 5, height: 5, borderRadius: "50%", background: SOLANA_NETWORK.color, display: "inline-block" }} />
+    {SOLANA_NETWORK.label}
+  </span>
 );
-
-// ── Chain Tag ──────────────────────────────────────────────────
-export const ChainTag = ({ chain }: { chain: string }) => {
-  const c = CHAINS[chain] || { color: C.accent };
-  return (
-    <span className="chain tag" style={{ background:c.color+"18", borderColor:c.color+"40", color:c.color, border:"1px solid" }}>
-      <span style={{ width:5, height:5, borderRadius:"50%", background:c.color, display:"inline-block" }}/>{chain}
-    </span>
-  );
-};
 
 // ── Status Tag ─────────────────────────────────────────────────
 const tagMap: Record<string,string> = { active:"tok", paid:"tpa", expired:"tex" };
-const labMap: Record<string,string> = { active:"Active", paid:"Paid", expired:"Expired" };
+const labMap: Record<string,string> = { active:"Active", paid:"Paid", claimed:"Claimed", expired:"Expired" };
 export const STag = ({ s }: { s: string }) => (
   <span className={`tag ${tagMap[s]||"tok"}`}>{labMap[s]||s}</span>
 );
@@ -98,7 +81,7 @@ export const Countdown = ({ mins }: { mins: number }) => {
 
 // ── Token/Expiry Select Row ────────────────────────────────────
 export const TokenSelect = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-  <div style={{ position:"relative", width:128 }}>
+  <div className="token-select" style={{ position:"relative", width:128 }}>
     <select className="inp sel" value={value} onChange={e=>onChange(e.target.value)} style={{ paddingRight:34 }}>
       {TOKENS.map(t => <option key={t}>{t}</option>)}
     </select>
@@ -110,7 +93,7 @@ export const ExpiryPills = ({ value, onChange }: { value: string; onChange: (v: 
   <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
     {EXPIRY.map(o => (
       <button key={o.v} onClick={()=>onChange(o.v)}
-        style={{ padding:"13px 8px", borderRadius:11, cursor:"none", border:`1px solid ${value===o.v ? C.accent+"80" : C.border}`, background: value===o.v ? C.accentDim : "rgba(255,255,255,.03)", color: value===o.v ? C.accent : C.muted, fontFamily:F.mono, fontSize:12, fontWeight:700, transition:"all .15s" }}>
+        style={{ padding:"13px 8px", borderRadius:11, cursor:"pointer", border:`1px solid ${value===o.v ? C.accent+"80" : C.border}`, background: value===o.v ? C.accentDim : "rgba(255,255,255,.03)", color: value===o.v ? C.accent : C.muted, fontFamily:F.mono, fontSize:12, fontWeight:700, transition:"all .15s" }}>
         {o.l}
       </button>
     ))}

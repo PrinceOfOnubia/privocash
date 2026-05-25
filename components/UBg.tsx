@@ -11,11 +11,11 @@ declare global {
 
 export default function UBg() {
   useEffect(() => {
-    if (window.__ul) { try { window.UnicornStudio?.init(); } catch(e){} return; }
+    if (window.__ul) { try { window.UnicornStudio?.init(); } catch { /* no-op */ } return; }
     window.__ul = true;
     const s = document.createElement("script");
     s.src = "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.0.5/dist/unicornStudio.umd.js";
-    s.onload = () => { try { window.UnicornStudio?.init(); } catch(e){} };
+    s.onload = () => { try { window.UnicornStudio?.init(); } catch { /* no-op */ } };
     document.head.appendChild(s);
   }, []);
 
