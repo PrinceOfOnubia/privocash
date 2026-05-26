@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png?v=5",
+        url: "/og-image.png?v=6",
         width: 1200,
         height: 630,
         alt: "PrivoCash — Send SOL privately.",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PrivoCash",
     description: "Send SOL privately.",
-    images: ["/og-image.png?v=5"],
+    images: ["/og-image.png?v=6"],
   },
   icons: {
     icon: [
