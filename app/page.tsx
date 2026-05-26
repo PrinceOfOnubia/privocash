@@ -20,12 +20,12 @@ export default function Home() {
             <NetworkBadge />
           </div>
           <h1 className="d hero-title">
-            PrivoCash
+            Private Solana
             <br />
-            <em>Private Payments.</em>
+            <em>Payments.</em>
           </h1>
           <p className="hero-lead">
-            Create private payment links or send SOL privately from one simple interface.
+            Create secure payment links or send SOL privately while reducing wallet exposure.
           </p>
           <div className="hero-actions">
             <button className="btn bp" onClick={() => nav("/create")}><ShieldSVG sz={17} col="#fff" /> Create Private Link <Arr /></button>
@@ -46,7 +46,7 @@ export default function Home() {
               <span className="btn bo bsm">Copy</span>
             </div>
           </div>
-          <PBanner text="Solana transaction details remain public while payment-link privacy reduces wallet exposure." />
+          <PBanner text="Secure payment links and direct SOL payments in one simple Phantom flow." />
         </div>
       </section>
 
@@ -58,8 +58,8 @@ export default function Home() {
         <div className="steps-grid">
           {[
             ["01", "Connect Solana wallet", "Phantom is the primary wallet flow for PrivoCash."],
-            ["02", "Create private links", "The recipient creates a request link, shares it, and the payer opens the link to pay."],
-            ["03", "Pay privately", "The sender enters a recipient address and amount to send SOL directly through the private payment flow."],
+            ["02", "Create secure links", "The recipient creates a request link, shares it, and the payer opens the link to pay."],
+            ["03", "Pay privately", "The sender enters a recipient address and amount to send SOL through a cleaner private flow."],
           ].map(([n, t, d]) => (
             <div key={n} className="step-card">
               <span className="m feature-index">{n}</span>
@@ -72,17 +72,17 @@ export default function Home() {
 
       <section className="section-band two-col">
         <div>
-          <span className="lbl" style={{ color: C.err }}>WHAT IS PUBLIC</span>
-          <h2 className="d section-title">Clear privacy boundaries.</h2>
+          <span className="lbl" style={{ color: C.accent }}>WHY PRIVOCASH</span>
+          <h2 className="d section-title">Payment privacy without the extra complexity.</h2>
           <p className="body-copy">
-            Solana transactions are public. PrivoCash reduces wallet exposure in payment-link and private-payment workflows while respecting public network limits.
+            PrivoCash gives Solana users a cleaner way to request and send payments. Create a secure link, share it, or pay directly from Phantom in a simple private-payment flow.
           </p>
         </div>
         <div className="card form-card">
           {[
-            ["Visible", "Transaction existence, amount, and network activity remain public."],
-            ["Payment links", "Recipients create a request link; payers open it and complete payment."],
-            ["Private payments", "Senders enter recipient address and amount to send SOL directly."],
+            ["Secure payment links", "Create a Solana payment request in seconds and share it anywhere."],
+            ["Pay privately", "Send SOL directly through a cleaner payment flow designed to reduce wallet exposure."],
+            ["Built for real users", "No account setup, no confusing dashboards, just connect Phantom and move."],
           ].map(([k, v]) => (
             <div key={k} className="receipt-row">
               <span>{k}</span>

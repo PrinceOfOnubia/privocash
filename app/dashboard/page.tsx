@@ -35,7 +35,7 @@ export default function DashboardPage() {
         <div className="split-left">
           <ShieldSVG sz={52} />
           <h2 className="d page-title" style={{ marginTop: 28 }}>Connect your<br /><em style={{ color: C.accent }}>Solana Wallet.</em></h2>
-          <p className="lead">Your private payment links and payment activity are tied to your Solana wallet. No account or email needed.</p>
+          <p className="lead">Your secure payment links and SOL payment activity are tied to your Solana wallet. No account or email needed.</p>
           <button className="btn bp full-mobile" onClick={openModal}>Connect Phantom</button>
         </div>
         <div className="split-right">
@@ -96,7 +96,7 @@ export default function DashboardPage() {
           {[
             ["Payment Links", String(links.length), "Created"],
             ["Active Links", String(links.filter((link) => link.status === "active").length), "Ready to pay"],
-            ["Private Payments", String(payments.length), "Direct sends"],
+            ["Private SOL Payments", String(payments.length), "Direct sends"],
             ["Network", "Solana", "SOL only"],
           ].map(([l, v, s]) => (
             <div key={l} className="card stat-card">
@@ -111,7 +111,7 @@ export default function DashboardPage() {
           <div className="card empty-state">
             <ShieldSVG sz={34} />
             <h3 className="d">No activity yet</h3>
-            <p>Create a private payment link or send SOL privately to see activity here.</p>
+            <p>Create a secure payment link or send SOL privately to see activity here.</p>
             <div className="action-row" style={{ justifyContent: "center" }}>
               <button className="btn bp" onClick={() => router.push("/create")}>Create Link</button>
               <button className="btn bs" onClick={() => router.push("/send")}>Pay Privately</button>

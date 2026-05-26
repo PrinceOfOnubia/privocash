@@ -81,7 +81,7 @@ export default function SendPage() {
         <div className="feature-list">
           {[
             { i: "01", t: "Connect Phantom", d: "Authorize the transfer from your Solana wallet." },
-            { i: "02", t: "Enter recipient and amount", d: "Send SOL directly through the private payment flow." },
+            { i: "02", t: "Enter recipient and amount", d: "Pay privately with SOL through a cleaner flow." },
             { i: "03", t: "Track signature", d: "Review the transaction on Solana Explorer after sending." },
           ].map((f) => (
             <div key={f.t} className="feature-row">

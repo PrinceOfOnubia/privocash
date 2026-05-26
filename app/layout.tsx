@@ -9,31 +9,31 @@ import UBg from "@/components/UBg";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://privocash.vercel.app"),
   title: "PrivoCash — Private Solana Payments",
-  description: "Send SOL privately.",
+  description: "Create secure payment links or send SOL privately while reducing wallet exposure.",
   keywords: [
     "Solana payments",
-    "private payment links",
+    "secure payment links",
     "Phantom wallet",
-    "payment privacy",
+    "private Solana payments",
   ],
   openGraph: {
-    title: "PrivoCash",
-    description: "Send SOL privately.",
+    title: "PrivoCash — Private Solana Payments",
+    description: "Create secure payment links or send SOL privately while reducing wallet exposure.",
     type: "website",
     images: [
       {
-        url: "/og-image.png?v=6",
-        width: 1200,
-        height: 630,
-        alt: "PrivoCash — Send SOL privately.",
+        url: "/og/privocash-og.png",
+        width: 1280,
+        height: 672,
+        alt: "PrivoCash — Private Solana Payments",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PrivoCash",
-    description: "Send SOL privately.",
-    images: ["/og-image.png?v=6"],
+    title: "PrivoCash — Private Solana Payments",
+    description: "Create secure payment links or send SOL privately while reducing wallet exposure.",
+    images: ["/og/privocash-og.png"],
   },
   icons: {
     icon: [
