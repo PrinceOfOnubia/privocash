@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { C, F, SOLANA_NETWORK, TOKENS, EXPIRY } from "@/lib/constants";
 
@@ -26,21 +25,49 @@ export const ShieldSVG = ({ sz = 20, col = C.accent }: { sz?: number; col?: stri
 
 // ── Logo ───────────────────────────────────────────────────────
 export const Logo = ({ onClick, sz = 26 }: { onClick?: () => void; sz?: number }) => (
-  <div onClick={onClick} data-c style={{ display:"flex", alignItems:"center", cursor:"pointer" }}>
-    <Image
-      src="/privocash-logo.jpg"
-      alt="PrivoCash"
-      width={640}
-      height={320}
-      priority
+  <div
+    onClick={onClick}
+    data-c
+    aria-label="PrivoCash"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: sz * 0.26,
+      cursor: "pointer",
+      lineHeight: 1,
+    }}
+  >
+    <span
+      aria-hidden="true"
       style={{
-        width: sz * 5.15,
-        height: sz * 1.12,
-        objectFit: "cover",
-        objectPosition: "center",
-        borderRadius: Math.max(8, sz * 0.22),
+        width: sz,
+        height: sz,
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(145deg, #38d5ff 0%, #2563eb 82%)",
+        boxShadow: `0 0 ${Math.max(10, sz * 0.55)}px rgba(37, 99, 235, 0.35)`,
+        flexShrink: 0,
       }}
-    />
+    >
+      <svg width={sz * 0.52} height={sz * 0.52} viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8.3" r="5.1" fill={C.logoBg} />
+        <path d="M8.7 11.5h6.6l2.15 8.4c.22.86-.43 1.7-1.32 1.7H7.87c-.89 0-1.54-.84-1.32-1.7l2.15-8.4Z" fill={C.logoBg} />
+      </svg>
+    </span>
+    <span
+      style={{
+        color: "#fff",
+        fontFamily: F.body,
+        fontSize: sz * 0.78,
+        fontWeight: 800,
+        letterSpacing: "-0.03em",
+        whiteSpace: "nowrap",
+      }}
+    >
+      Privo<span style={{ color: "#25b8ff" }}>Cash</span>
+    </span>
   </div>
 );
 

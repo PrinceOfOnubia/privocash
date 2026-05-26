@@ -1,5 +1,6 @@
 export const C = {
   bg: "#06060A",
+  logoBg: "#020416",
   surface: "rgba(255,255,255,0.032)",
   surfaceHov: "rgba(255,255,255,0.062)",
   border: "rgba(255,255,255,0.075)",
