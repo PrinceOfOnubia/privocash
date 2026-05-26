@@ -103,7 +103,7 @@ export default function Home() {
 
       <footer className="footer">
         <div className="footer-main">
-          <Logo sz={24} />
+          <Logo sz={32} />
           <div className="footer-links">
             <Link href="/create" className="nl">Create Link</Link>
             <Link href="/send" className="nl">Pay Privately</Link>
