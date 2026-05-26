@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { C, F, SOLANA_NETWORK, TOKENS, EXPIRY } from "@/lib/constants";
 
@@ -25,11 +26,21 @@ export const ShieldSVG = ({ sz = 20, col = C.accent }: { sz?: number; col?: stri
 
 // ── Logo ───────────────────────────────────────────────────────
 export const Logo = ({ onClick, sz = 26 }: { onClick?: () => void; sz?: number }) => (
-  <div onClick={onClick} data-c style={{ display:"flex", alignItems:"center", gap:11, cursor:"pointer" }}>
-    <div style={{ width:sz, height:sz, borderRadius:9, background:C.accent, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 0 22px ${C.accent}55` }}>
-      <ShieldSVG sz={sz * .6} col="#fff"/>
-    </div>
-    <span className="d" style={{ fontWeight:700, fontSize:sz*.72, color:C.text, letterSpacing:"-.02em" }}>Privo</span>
+  <div onClick={onClick} data-c style={{ display:"flex", alignItems:"center", cursor:"pointer" }}>
+    <Image
+      src="/privocash-logo.jpg"
+      alt="PrivoCash"
+      width={640}
+      height={320}
+      priority
+      style={{
+        width: sz * 5.15,
+        height: sz * 1.12,
+        objectFit: "cover",
+        objectPosition: "center",
+        borderRadius: Math.max(8, sz * 0.22),
+      }}
+    />
   </div>
 );
 

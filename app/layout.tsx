@@ -7,9 +7,9 @@ import WalletModal from "@/components/WalletModal";
 import UBg from "@/components/UBg";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://privocash.vercel.app"),
   title: "PrivoCash — Private Solana Payments",
-  description:
-    "Create private payment links or send SOL privately from one simple interface.",
+  description: "Send SOL privately.",
   keywords: [
     "Solana payments",
     "private payment links",
@@ -18,9 +18,29 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "PrivoCash",
-    description:
-      "Create private Solana payment links or send SOL privately from one simple interface.",
+    description: "Send SOL privately.",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "PrivoCash — Send SOL privately.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PrivoCash",
+    description: "Send SOL privately.",
+    images: ["/twitter-image"],
+  },
+  icons: {
+    icon: [
+      { url: "/privocash-icon.jpg", type: "image/jpeg" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
