@@ -41,7 +41,7 @@ export default function Navbar() {
       }}
     >
       <Link href="/">
-        <Logo sz={34} />
+        <Logo sz={30} />
       </Link>
 
       {/* Desktop Nav */}
