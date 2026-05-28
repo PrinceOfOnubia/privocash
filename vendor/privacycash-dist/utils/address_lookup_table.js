@@ -1,6 +1,7 @@
 import { PublicKey, SystemProgram, ComputeBudgetProgram } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { logger } from './logger.js';
+const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 /**
  * Helper function to use an existing ALT (recommended for production)
  * Use create_alt.ts to create the ALT once, then hardcode the address and use this function

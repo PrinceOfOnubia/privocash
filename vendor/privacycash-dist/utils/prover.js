@@ -7,7 +7,7 @@
  * Inspired by: https://github.com/tornadocash/tornado-nova/blob/f9264eeffe48bf5e04e19d8086ee6ec58cdf0d9e/src/prover.js
  */
 /// <reference types="node" />
-import * as anchor from "@coral-xyz/anchor";
+import BN from 'bn.js';
 import { wtns, groth16 } from 'snarkjs';
 import { FIELD_SIZE } from './constants.js';
 // @ts-ignore - ignore TypeScript errors for ffjavascript
@@ -71,16 +71,16 @@ export function parseProofToBytesArray(proof, compressed = false) {
         if (compressed) {
             const proofA = mydata.pi_a[0];
             // negate proof by reversing the bitmask
-            const proofAIsPositive = yElementIsPositiveG1(new anchor.BN(mydata.pi_a[1]))
+            const proofAIsPositive = yElementIsPositiveG1(new BN(mydata.pi_a[1]))
                 ? false
                 : true;
             proofA[0] = addBitmaskToByte(proofA[0], proofAIsPositive);
             const proofB = mydata.pi_b[0].flat().reverse();
             const proofBY = mydata.pi_b[1].flat().reverse();
-            const proofBIsPositive = yElementIsPositiveG2(new anchor.BN(proofBY.slice(0, 32)), new anchor.BN(proofBY.slice(32, 64)));
+            const proofBIsPositive = yElementIsPositiveG2(new BN(proofBY.slice(0, 32)), new BN(proofBY.slice(32, 64)));
             proofB[0] = addBitmaskToByte(proofB[0], proofBIsPositive);
             const proofC = mydata.pi_c[0];
-            const proofCIsPositive = yElementIsPositiveG1(new anchor.BN(mydata.pi_c[1]));
+            const proofCIsPositive = yElementIsPositiveG1(new BN(mydata.pi_c[1]));
             proofC[0] = addBitmaskToByte(proofC[0], proofCIsPositive);
             return {
                 proofA,

@@ -3,13 +3,14 @@ import { databaseEnabled, updateDbPrivatePayment } from "@/lib/server/payment-re
 
 export const runtime = "nodejs";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!databaseEnabled()) {
     return NextResponse.json({ error: "Database is not configured." }, { status: 503 });
   }
 
+  const { id } = await params;
   const body = await request.json();
-  const payment = await updateDbPrivatePayment(params.id, {
+  const payment = await updateDbPrivatePayment(id, {
     status: body.status,
     withdrawSignature: body.withdrawSignature,
   });
