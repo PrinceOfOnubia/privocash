@@ -82,6 +82,12 @@ function mapPrivacyError(error: unknown) {
   if (msg.includes("user rejected") || msg.includes("rejected")) {
     return "Transaction rejected in Phantom.";
   }
+  if (msg.includes("403") || msg.includes("access forbidden") || msg.includes("forbidden")) {
+    return "The Solana RPC endpoint rejected this request. Check the RPC API key or configure a working mainnet-beta fallback RPC.";
+  }
+  if (msg.includes("429") || msg.includes("rate limit")) {
+    return "The Solana RPC endpoint is rate limited. Try again or configure a higher-capacity mainnet-beta RPC.";
+  }
   if (msg.includes("insufficient") || msg.includes("0x1")) {
     return "Insufficient SOL balance for the private deposit and network fees.";
   }
