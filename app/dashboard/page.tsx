@@ -1,19 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { useEffect, useMemo, useState } from "react";
 import { NetworkBadge, ShieldSVG, STag } from "@/components/Atoms";
 import { C } from "@/lib/constants";
 import { getPaymentLinks, getPrivatePayments, PaymentLink, PrivatePayment } from "@/lib/payment-service";
 import { useWallet } from "@/lib/wallet-context";
 
-type Tab = "activity" | "links";
-
 export default function DashboardPage() {
   const router = useRouter();
-  const { wallet, openModal } = useWallet();
-  const [tab, setTab] = useState<Tab>("activity");
+  const { connection } = useConnection();
+  const { wallet, walletName, publicKey, openModal } = useWallet();
   const [copied, setCopied] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string>("...");
   const [links] = useState<PaymentLink[]>(() =>
     typeof window === "undefined" ? [] : getPaymentLinks()
   );
@@ -23,8 +23,22 @@ export default function DashboardPage() {
 
   const activity = useMemo(() => [...links, ...payments], [links, payments]);
 
+  useEffect(() => {
+    let cancelled = false;
+    if (!publicKey) return;
+    connection.getBalance(publicKey).then((lamports) => {
+      if (!cancelled) setBalance((lamports / 1_000_000_000).toLocaleString(undefined, { maximumFractionDigits: 4 }));
+    }).catch(() => {
+      if (!cancelled) setBalance("Unavailable");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [connection, publicKey]);
+
   const copy = async (id: string) => {
-    await navigator.clipboard?.writeText(`privo.cash/pay/${id}`);
+    const origin = typeof window === "undefined" ? "https://privo.cash" : window.location.origin;
+    await navigator.clipboard?.writeText(`${origin}/pay/${id}`);
     setCopied(id);
     setTimeout(() => setCopied(null), 1800);
   };
@@ -36,7 +50,7 @@ export default function DashboardPage() {
           <ShieldSVG sz={52} />
           <h2 className="d page-title" style={{ marginTop: 28 }}>Connect your<br /><em style={{ color: C.accent }}>Solana Wallet.</em></h2>
           <p className="lead">Your secure payment links and SOL payment activity are tied to your Solana wallet. No account or email needed.</p>
-          <button className="btn bp full-mobile" onClick={openModal}>Connect Phantom</button>
+          <button className="btn bp full-mobile" onClick={openModal}>Connect Wallet</button>
         </div>
         <div className="split-right">
           <div className="feature-list" style={{ width: "100%", maxWidth: 520 }}>
@@ -60,24 +74,16 @@ export default function DashboardPage() {
     <div className="dash-shell">
       <aside className="dash-sidebar">
         <div className="wallet-card">
-          <div className="lbl" style={{ marginBottom: 6 }}>CONNECTED PHANTOM</div>
+          <div className="lbl" style={{ marginBottom: 6 }}>CONNECTED WALLET</div>
+          <div className="m" style={{ fontSize: 11, color: C.dim, marginBottom: 8 }}>{walletName}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span className="pulse-dot" />
             <span className="m" style={{ fontSize: 12, color: C.accent }}>{wallet.slice(0, 8)}...{wallet.slice(-4)}</span>
           </div>
         </div>
 
-        {(["activity", "links"] as const).map((id) => (
-          <button key={id} className={`snav ${tab === id ? "on" : ""}`} onClick={() => setTab(id)} style={{ color: tab === id ? C.accent : C.muted }}>
-            {id === "activity" ? "Activity" : "Payment Links"}
-          </button>
-        ))}
-
-        <div style={{ flex: 1 }} />
-        <div className="dash-actions">
-          <button className="btn bp dash-action-btn" onClick={() => router.push("/create")}>Create Link</button>
-          <button className="btn bs dash-action-btn" onClick={() => router.push("/send")}>Pay Privately</button>
-        </div>
+        <button className="snav on" onClick={() => router.push("/dashboard")} style={{ color: C.accent }}>Dashboard</button>
+        <button className="snav" onClick={() => router.push("/links")} style={{ color: C.muted }}>Payment Links</button>
       </aside>
 
       <main className="dash-main">
@@ -97,7 +103,7 @@ export default function DashboardPage() {
             ["Payment Links", String(links.length), "Created"],
             ["Funded Links", String(links.filter((link) => link.status === "funded").length), "Private deposits"],
             ["Private SOL Payments", String(payments.length), "Deposits created"],
-            ["Network", "Solana", "SOL only"],
+            ["Wallet Balance", balance, "SOL"],
           ].map(([l, v, s]) => (
             <div key={l} className="card stat-card">
               <div className="lbl">{l}</div>
@@ -112,7 +118,7 @@ export default function DashboardPage() {
             <ShieldSVG sz={34} />
             <h3 className="d">No activity yet</h3>
             <p>Create a secure payment link or send SOL privately to see activity here.</p>
-            <div className="action-row" style={{ justifyContent: "center" }}>
+            <div className="action-row dashboard-empty-actions" style={{ justifyContent: "center" }}>
               <button className="btn bp" onClick={() => router.push("/create")}>Create Link</button>
               <button className="btn bs" onClick={() => router.push("/send")}>Pay Privately</button>
             </div>
@@ -122,7 +128,7 @@ export default function DashboardPage() {
             <div className="table-head">
               {["Activity", "Amount", "Network", "Views", "Status", "Actions"].map((h) => <span key={h} className="lbl">{h}</span>)}
             </div>
-            {(tab === "links" ? links : links).map((l) => (
+            {links.map((l) => (
               <div key={l.id} className="table-row">
                 <div>
                   <div className="activity-type">Payment link</div>
@@ -139,7 +145,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
-            {tab === "activity" && payments.map((payment) => (
+            {payments.map((payment) => (
               <div key={payment.id} className="table-row">
                 <div>
                   <div className="activity-type">Private payment</div>

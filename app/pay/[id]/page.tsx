@@ -27,8 +27,10 @@ export default function PayLinkPage() {
     typeof window === "undefined" ? null : getPaymentLink(linkId)
   );
   const expired = link ? isExpired(link) : false;
+  const isCreator = !!publicKey && !!link?.creator && link.creator === publicKey.toBase58();
   const [step, setStep] = useState<"ready" | "pending">("ready");
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState("");
 
   const pay = async () => {
@@ -37,6 +39,12 @@ export default function PayLinkPage() {
       return;
     }
     if (!link) return;
+    if (isCreator) {
+      await navigator.clipboard?.writeText(`${window.location.origin}/pay/${link.id}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+      return;
+    }
     if (expired) {
       setError("This payment link has expired. Ask the recipient to create a new link.");
       updatePaymentLink(link.id, { status: "expired" });
@@ -120,9 +128,9 @@ export default function PayLinkPage() {
                 ))}
               </div>
               {error && <p style={{ color: C.err, fontSize: 12, marginBottom: 14 }}>{error}</p>}
-              <button className="btn bp full-mobile" style={{ width: "100%", padding: "18px", fontSize: 16 }} onClick={pay} disabled={expired}>
+              <button className="btn bp full-mobile" style={{ width: "100%", padding: "18px", fontSize: 16 }} onClick={pay} disabled={expired && !isCreator}>
                 <ShieldSVG sz={18} col="#fff" />
-                {expired ? "Link Expired" : publicKey ? "Pay Privately" : "Connect Phantom to Pay"}
+                {isCreator ? copied ? "Copied Link" : "Copy Payment Link" : expired ? "Link Expired" : publicKey ? "Pay Privately" : "Connect Wallet to Pay"}
               </button>
             </div>
           )}
@@ -131,7 +139,7 @@ export default function PayLinkPage() {
             <div className="card form-card center-card">
               <div className="success-orb"><Spin /></div>
               <h3 className="d modal-title">Preparing Private Payment</h3>
-              <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.65 }}>{status || "Generating private proof. Confirm the private deposit in Phantom when prompted."}</p>
+              <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.65 }}>{status || "Generating private proof. Confirm the private deposit in your wallet when prompted."}</p>
               <div className="sb" style={{ marginTop: 28 }} />
             </div>
           )}

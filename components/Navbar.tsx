@@ -13,12 +13,13 @@ const NAV = [
   { href: "/send", label: "Pay Privately" },
   { href: "/claim", label: "Claim" },
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/docs", label: "Docs" },
 ];
 
 export default function Navbar() {
   const path = usePathname();
   const scrolled = useScrolled();
-  const { wallet, openModal, disconnect, connected } = useWallet();
+  const { wallet, walletName, openModal, disconnect, connected } = useWallet();
   const [open, setOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
 
@@ -79,7 +80,8 @@ export default function Navbar() {
             </button>
             {walletOpen && (
               <div className="wallet-menu">
-                <div className="lbl">CONNECTED PHANTOM</div>
+                <div className="lbl">CONNECTED WALLET</div>
+                <div className="m" style={{ color: C.muted, fontSize: 11, marginBottom: 8 }}>{walletName}</div>
                 <div className="m wallet-menu-address">{wallet.slice(0, 8)}...{wallet.slice(-6)}</div>
                 <button
                   className="wallet-disconnect"
@@ -95,7 +97,7 @@ export default function Navbar() {
           </div>
         ) : (
           <button className="btn bp bsm" onClick={openModal}>
-            Connect Phantom
+            Connect Wallet
           </button>
         )}
       </div>
@@ -167,7 +169,7 @@ export default function Navbar() {
                 className="btn bp bsm"
                 onClick={openModal}
               >
-                Connect Phantom
+                Connect Wallet
               </button>
             )}
           </div>

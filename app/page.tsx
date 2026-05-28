@@ -46,7 +46,7 @@ export default function Home() {
               <span className="btn bo bsm">Copy</span>
             </div>
           </div>
-          <PBanner text="Secure payment links and private SOL deposits in one simple Phantom flow." />
+          <PBanner text="Secure payment links and private SOL deposits in one simple wallet flow." />
         </div>
       </section>
 
@@ -57,7 +57,7 @@ export default function Home() {
         </div>
         <div className="steps-grid">
           {[
-            ["01", "Connect Solana wallet", "Phantom is the primary wallet flow for PrivoCash."],
+            ["01", "Connect Solana wallet", "Use a supported Solana wallet to start."],
             ["02", "Create secure links", "The recipient creates a request link, shares it, and the payer opens the link to pay."],
             ["03", "Pay privately", "The sender creates a private deposit and shares the claim secret securely."],
           ].map(([n, t, d]) => (
@@ -75,14 +75,14 @@ export default function Home() {
           <span className="lbl" style={{ color: C.accent }}>WHY PRIVOCASH</span>
           <h2 className="d section-title">Payment privacy without the extra complexity.</h2>
           <p className="body-copy">
-            PrivoCash gives Solana users a cleaner way to request and send payments. Create a secure link, share it, or start a private deposit from Phantom in a simple private-payment flow.
+            PrivoCash gives Solana users a cleaner way to request and send payments. Create a secure link, share it, or start a private deposit from your wallet in a simple private-payment flow.
           </p>
         </div>
         <div className="card form-card">
           {[
             ["Secure payment links", "Create a Solana payment request in seconds and share it anywhere."],
             ["Pay privately", "Send SOL directly through a cleaner payment flow designed to reduce wallet exposure."],
-            ["Built for real users", "No account setup, no confusing dashboards, just connect Phantom and move."],
+            ["Built for real users", "No account setup, no confusing dashboards, just connect a Solana wallet and move."],
           ].map(([k, v]) => (
             <div key={k} className="receipt-row">
               <span>{k}</span>
@@ -94,7 +94,7 @@ export default function Home() {
 
       <section className="final-cta">
         <h2 className="d hero-title">Start with<br /><em>Private SOL.</em></h2>
-        <p className="hero-lead">Create a payment link or send directly after connecting Phantom.</p>
+        <p className="hero-lead">Create a payment link or send privately after connecting your wallet.</p>
         <div className="hero-actions" style={{ justifyContent: "center" }}>
           <button className="btn bp" onClick={() => nav("/create")}><ShieldSVG sz={18} col="#fff" /> Create Link</button>
           <button className="btn bs" onClick={() => nav("/send")}>Pay Privately</button>
@@ -109,6 +109,9 @@ export default function Home() {
             <Link href="/send" className="nl">Pay Privately</Link>
             <Link href="/claim" className="nl">Claim</Link>
             <Link href="/dashboard" className="nl">Dashboard</Link>
+            <Link href="/docs" className="nl">Docs</Link>
+            <Link href="/terms" className="nl">Terms</Link>
+            <Link href="/privacy" className="nl">Privacy</Link>
             <a href="mailto:hello@privo.cash" className="nl">Contact</a>
           </div>
         </div>

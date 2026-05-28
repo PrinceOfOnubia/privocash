@@ -80,7 +80,7 @@ function mapPrivacyError(error: unknown) {
   const msg = raw.toLowerCase();
 
   if (msg.includes("user rejected") || msg.includes("rejected")) {
-    return "Transaction rejected in Phantom.";
+    return "Transaction rejected in your wallet.";
   }
   if (msg.includes("403") || msg.includes("access forbidden") || msg.includes("forbidden")) {
     return "The Solana RPC endpoint rejected this request. Check the RPC API key or configure a working mainnet-beta fallback RPC.";
@@ -153,8 +153,8 @@ export async function depositPrivateSol({
 }) {
   assertBrowser();
   assertLamports(amountLamports);
-  if (!wallet.publicKey) throw new Error("Connect Phantom to continue.");
-  if (!wallet.signTransaction) throw new Error("Phantom must support transaction signing.");
+  if (!wallet.publicKey) throw new Error("Connect wallet to continue.");
+  if (!wallet.signTransaction) throw new Error("Connected wallet must support transaction signing.");
 
   try {
     const secret = createPrivacySecret();
@@ -202,7 +202,7 @@ export async function getPrivateUtxos({
   abortSignal?: AbortSignal;
 }) {
   assertBrowser();
-  if (!wallet.publicKey) throw new Error("Connect Phantom to continue.");
+  if (!wallet.publicKey) throw new Error("Connect wallet to continue.");
   const secretBytes = decodePrivacySecret(secret);
   if (!secretBytes) throw new Error("Invalid secret");
 
@@ -240,7 +240,7 @@ export async function claimPrivateSol({
   connection: Connection;
 }) {
   assertBrowser();
-  if (!wallet.publicKey) throw new Error("Connect Phantom to continue.");
+  if (!wallet.publicKey) throw new Error("Connect wallet to continue.");
   const secretBytes = decodePrivacySecret(secret);
   if (!secretBytes) throw new Error("Invalid secret");
 

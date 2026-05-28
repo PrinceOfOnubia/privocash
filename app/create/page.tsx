@@ -43,6 +43,7 @@ export default function CreatePage() {
       title: form.title,
       note: form.note,
       expiry: form.expiry,
+      creator: publicKey.toBase58(),
     });
     setTimeout(() => router.push(`/create/success?id=${link.id}`), 400);
   };
@@ -59,7 +60,7 @@ export default function CreatePage() {
         </p>
         <div className="feature-list">
           {[
-            { icon: "01", t: "Connect Phantom", d: "Use a Solana wallet with no account or email." },
+            { icon: "01", t: "Connect wallet", d: "Use a Solana wallet with no account or email." },
             { icon: "02", t: "Create a secure link", d: "Set a SOL amount, reference, and optional note." },
             { icon: "03", t: "Share and claim", d: "Payers fund a private deposit, then share the claim secret securely." },
           ].map((f) => (
@@ -115,7 +116,7 @@ export default function CreatePage() {
               <PBanner text="Payment links create private deposits. Claim secrets are shown only after a successful private payment." />
 
               <button className="btn bp full-mobile" style={{ width: "100%", padding: "17px", fontSize: 15 }} onClick={go}>
-                {loading ? <><Spin /> Creating...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Create Private Link" : "Connect Phantom"}</>}
+                {loading ? <><Spin /> Creating...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Create Private Link" : "Connect Wallet"}</>}
               </button>
             </div>
           </div>

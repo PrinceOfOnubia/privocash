@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   keywords: [
     "Solana payments",
     "secure payment links",
-    "Phantom wallet",
+    "Solana wallet",
     "private Solana payments",
   ],
   openGraph: {

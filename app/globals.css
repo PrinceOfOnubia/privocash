@@ -1156,6 +1156,10 @@
     flex-direction: column;
   }
 
+  .dashboard-empty-actions {
+    display: none;
+  }
+
   .table-head {
     display: none;
   }

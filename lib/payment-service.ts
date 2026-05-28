@@ -18,6 +18,7 @@ export interface PaymentLink {
   updatedAt: string;
   expiresAt: string;
   expiryMinutes: number;
+  creator?: string;
   recipient?: string;
   note?: string;
   depositSignature?: string;
@@ -46,6 +47,7 @@ export interface CreatePaymentInput {
   title: string;
   note?: string;
   recipient?: string;
+  creator?: string;
   expiry?: string;
 }
 
@@ -117,6 +119,7 @@ export function createPaymentLink(input: CreatePaymentInput): PaymentLink {
     updatedAt: now,
     expiresAt: new Date(Date.now() + expiryMinutes * 60_000).toISOString(),
     expiryMinutes,
+    creator: input.creator,
     recipient: input.recipient,
     note: input.note?.trim() || undefined,
   };

@@ -94,7 +94,7 @@ export default function SendPage() {
         </p>
         <div className="feature-list">
           {[
-            { i: "01", t: "Connect Phantom", d: "Authorize the transfer from your Solana wallet." },
+            { i: "01", t: "Connect wallet", d: "Authorize the private deposit from your Solana wallet." },
             { i: "02", t: "Create private deposit", d: "Generate a claim secret after the private payment is confirmed." },
             { i: "03", t: "Share securely", d: "Send the secret to your recipient so they can claim privately." },
           ].map((f) => (
@@ -148,7 +148,7 @@ export default function SendPage() {
               {error && <p style={{ color: C.err, fontSize: 13, lineHeight: 1.6 }}>{error}</p>}
 
               <button className="btn bp full-mobile" style={{ width: "100%", padding: "17px", fontSize: 15 }} onClick={submit} disabled={loading}>
-                {loading ? <><Spin /> Confirm in Phantom...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Pay Privately" : "Connect Phantom"}</>}
+                {loading ? <><Spin /> Confirm in wallet...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Pay Privately" : "Connect Wallet"}</>}
               </button>
             </div>
           </div>

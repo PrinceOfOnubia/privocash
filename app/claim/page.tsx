@@ -81,13 +81,13 @@ export default function ClaimPage() {
         <span className="lbl" style={{ color: C.accent, display: "block", marginBottom: 18 }}>CLAIM PRIVATELY</span>
         <h1 className="d page-title">Claim With<br /><em style={{ color: C.accent }}>Secret.</em></h1>
         <p className="lead">
-          Paste the claim secret, connect Phantom, and withdraw the private deposit to your wallet.
+          Paste the claim secret, connect a Solana wallet, and withdraw the private deposit to your wallet.
         </p>
         <div className="feature-list">
           {[
             { i: "01", t: "Paste claim secret", d: "Secrets are never placed in the URL." },
             { i: "02", t: "Prepare private proof", d: "PrivoCash scans for the private deposit before claiming." },
-            { i: "03", t: "Claim privately", d: "Confirm the withdrawal in Phantom when prompted." },
+            { i: "03", t: "Claim", d: "Confirm the withdrawal in your wallet when prompted." },
           ].map((f) => (
             <div key={f.t} className="feature-row">
               <span className="m feature-index">{f.i}</span>
@@ -137,7 +137,7 @@ export default function ClaimPage() {
 
               <PBanner text="If the private proof or withdrawal fails, PrivoCash stops immediately. No public fallback transfer is sent." />
               {step === "checking" && <p style={{ color: C.accent, fontSize: 13 }}>Preparing private payment proof...</p>}
-              {step === "claiming" && <p style={{ color: C.accent, fontSize: 13 }}>Generating privacy proof. Confirm in Phantom...</p>}
+              {step === "claiming" && <p style={{ color: C.accent, fontSize: 13 }}>Generating privacy proof. Confirm in your wallet...</p>}
               {error && <p style={{ color: C.err, fontSize: 13, lineHeight: 1.6 }}>{error}</p>}
 
               {step === "claimed" ? (
@@ -155,7 +155,7 @@ export default function ClaimPage() {
                     {step === "checking" ? <><Spin /> Checking...</> : "Check"}
                   </button>
                   <button className="btn bp full-mobile" style={{ flex: 1 }} onClick={claim} disabled={step !== "ready"}>
-                    {step === "claiming" ? <><Spin /> Claiming...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Claim Privately" : "Connect Phantom"}</>}
+                    {step === "claiming" ? <><Spin /> Claiming...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Claim" : "Connect Wallet"}</>}
                   </button>
                 </div>
               )}
