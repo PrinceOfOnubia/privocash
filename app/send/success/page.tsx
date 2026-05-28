@@ -4,10 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { NetworkBadge, PBanner } from "@/components/Atoms";
 import { C } from "@/lib/constants";
-import { getClaimHandoff } from "@/lib/payment-service";
-
-const explorerUrl = (signature: string) =>
-  `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
+import { getClaimHandoff, solanaExplorerUrl } from "@/lib/payment-service";
 
 function SendSuccessContent() {
   const router = useRouter();
@@ -42,7 +39,7 @@ function SendSuccessContent() {
         )}
         <div className="action-row">
           <button className="btn bs" onClick={() => copy(signature, "sig")}>{copied === "sig" ? "Copied Signature" : "Copy Signature"}</button>
-          <a className="btn bp" href={explorerUrl(signature)} target="_blank" rel="noreferrer">View on Explorer</a>
+          <a className="btn bp" href={solanaExplorerUrl(signature)} target="_blank" rel="noreferrer">View on Explorer</a>
         </div>
       </div>
 

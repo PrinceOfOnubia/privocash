@@ -42,6 +42,7 @@ export default function CreatePage() {
       amount: form.amount,
       title: form.title,
       note: form.note,
+      expiry: form.expiry,
     });
     setTimeout(() => router.push(`/create/success?id=${link.id}`), 400);
   };

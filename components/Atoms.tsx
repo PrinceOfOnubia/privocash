@@ -97,15 +97,23 @@ export const STag = ({ s }: { s: string }) => (
 );
 
 // ── Countdown ──────────────────────────────────────────────────
-export const Countdown = ({ mins }: { mins: number }) => {
-  const [secs, setSecs] = useState(mins * 60);
+const countdownSecs = (expiresAt?: string, mins = 15) => {
+  if (expiresAt) {
+    return Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
+  }
+  return mins * 60;
+};
+
+export const Countdown = ({ mins, expiresAt }: { mins?: number; expiresAt?: string }) => {
+  const durationMins = mins ?? 15;
+  const [secs, setSecs] = useState(() => countdownSecs(expiresAt, durationMins));
   useEffect(() => {
-    const iv = setInterval(() => setSecs(s => Math.max(0, s-1)), 1000);
+    const iv = setInterval(() => setSecs(countdownSecs(expiresAt, durationMins)), 1000);
     return () => clearInterval(iv);
-  }, []);
+  }, [expiresAt, durationMins]);
   const m = Math.floor(secs/60).toString().padStart(2,"0");
   const s = (secs%60).toString().padStart(2,"0");
-  const pct = (secs / (mins*60)) * 100;
+  const pct = Math.min(100, (secs / (durationMins*60)) * 100);
   const col = secs < 60 ? C.err : secs < 180 ? C.warn : C.accent;
   return (
     <div>

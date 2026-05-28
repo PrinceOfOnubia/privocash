@@ -16,6 +16,8 @@ export interface PaymentLink {
   date: string;
   createdAt: string;
   updatedAt: string;
+  expiresAt: string;
+  expiryMinutes: number;
   recipient?: string;
   note?: string;
   depositSignature?: string;
@@ -44,6 +46,7 @@ export interface CreatePaymentInput {
   title: string;
   note?: string;
   recipient?: string;
+  expiry?: string;
 }
 
 export interface CreatePrivatePaymentInput {
@@ -82,12 +85,23 @@ export function solToLamports(amount: string) {
   return Math.round(Number(amount) * LAMPORTS_PER_SOL);
 }
 
+export function expiryToMinutes(expiry = "15m") {
+  if (expiry.endsWith("h")) return Number(expiry.replace("h", "")) * 60;
+  if (expiry.endsWith("m")) return Number(expiry.replace("m", ""));
+  return 15;
+}
+
+export function isExpired(link: Pick<PaymentLink, "expiresAt" | "status">) {
+  return link.status !== "funded" && link.status !== "claimed" && Date.now() > new Date(link.expiresAt).getTime();
+}
+
 export function getPaymentLinks(): PaymentLink[] {
   return read<PaymentLink[]>(LINKS_KEY, []);
 }
 
 export function createPaymentLink(input: CreatePaymentInput): PaymentLink {
   const now = new Date().toISOString();
+  const expiryMinutes = expiryToMinutes(input.expiry);
   const link: PaymentLink = {
     id: newId("sol"),
     type: "payment-link",
@@ -101,6 +115,8 @@ export function createPaymentLink(input: CreatePaymentInput): PaymentLink {
     date: today(),
     createdAt: now,
     updatedAt: now,
+    expiresAt: new Date(Date.now() + expiryMinutes * 60_000).toISOString(),
+    expiryMinutes,
     recipient: input.recipient,
     note: input.note?.trim() || undefined,
   };

@@ -53,6 +53,11 @@ type EncryptionModule = {
   };
 };
 
+type PrivacyCashConstants = {
+  ALT_ADDRESS: PublicKey;
+  PROGRAM_ID: PublicKey;
+};
+
 function assertBrowser() {
   if (typeof window === "undefined") {
     throw new Error("Private payments can only be prepared in the browser.");
@@ -83,6 +88,9 @@ function mapPrivacyError(error: unknown) {
   if (msg.includes("transaction2") || msg.includes("zkey") || msg.includes("wasm")) {
     return "Private proof assets could not be loaded. Please refresh and try again.";
   }
+  if (msg.includes("alt not found") || msg.includes("address lookup")) {
+    return "Privacy Cash infrastructure was not found on this RPC network. Use a mainnet-beta Solana RPC or set the matching Privacy Cash program and ALT addresses.";
+  }
   if (msg.includes("proof") || msg.includes("snark") || msg.includes("witness")) {
     return "Private proof generation failed. No public transfer was sent.";
   }
@@ -98,6 +106,18 @@ function mapPrivacyError(error: unknown) {
 
 async function loadPrivacyCashUtils(): Promise<PrivacyCashUtils> {
   return (await import("../../vendor/privacycash-dist/exportUtils.js")) as PrivacyCashUtils;
+}
+
+async function loadPrivacyCashConstants(): Promise<PrivacyCashConstants> {
+  return (await import("../../vendor/privacycash-dist/utils/constants.js")) as PrivacyCashConstants;
+}
+
+async function assertPrivacyInfrastructure(connection: Connection) {
+  const { ALT_ADDRESS } = await loadPrivacyCashConstants();
+  const alt = await connection.getAddressLookupTable(ALT_ADDRESS);
+  if (!alt.value) {
+    throw new Error(`ALT not found at address ${ALT_ADDRESS.toString()}`);
+  }
 }
 
 async function getLightWasm() {
@@ -134,6 +154,8 @@ export async function depositPrivateSol({
     const secret = createPrivacySecret();
     const secretBytes = decodePrivacySecret(secret);
     if (!secretBytes) throw new Error("Invalid secret");
+
+    await assertPrivacyInfrastructure(connection);
 
     const [{ deposit }, lightWasm, encryptionService] = await Promise.all([
       loadPrivacyCashUtils(),
@@ -179,6 +201,8 @@ export async function getPrivateUtxos({
   if (!secretBytes) throw new Error("Invalid secret");
 
   try {
+    await assertPrivacyInfrastructure(connection);
+
     const [{ getUtxos, getBalanceFromUtxos }, encryptionService] = await Promise.all([
       loadPrivacyCashUtils(),
       encryptionServiceFromSecretBytes(secretBytes),
@@ -215,6 +239,8 @@ export async function claimPrivateSol({
   if (!secretBytes) throw new Error("Invalid secret");
 
   try {
+    await assertPrivacyInfrastructure(connection);
+
     const [{ withdraw, getUtxos, getBalanceFromUtxos }, lightWasm, encryptionService] =
       await Promise.all([
         loadPrivacyCashUtils(),

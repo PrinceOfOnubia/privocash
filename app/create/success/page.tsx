@@ -70,7 +70,7 @@ function CreateSuccessContent() {
               </div>
               <div className="detail-cell">
                 <div className="lbl">EXPIRES IN</div>
-                <Countdown mins={15} />
+                <Countdown mins={link.expiryMinutes || 15} expiresAt={link.expiresAt} />
               </div>
             </div>
             <div className="receipt-list">

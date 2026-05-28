@@ -7,6 +7,7 @@ import { Countdown, Logo, NetworkBadge, PBanner, ShieldSVG, Spin } from "@/compo
 import { C } from "@/lib/constants";
 import {
   getPaymentLink,
+  isExpired,
   PaymentLink,
   saveClaimHandoff,
   solToLamports,
@@ -25,6 +26,7 @@ export default function PayLinkPage() {
   const [link] = useState<PaymentLink | null>(() =>
     typeof window === "undefined" ? null : getPaymentLink(linkId)
   );
+  const expired = link ? isExpired(link) : false;
   const [step, setStep] = useState<"ready" | "pending">("ready");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
@@ -35,6 +37,11 @@ export default function PayLinkPage() {
       return;
     }
     if (!link) return;
+    if (expired) {
+      setError("This payment link has expired. Ask the recipient to create a new link.");
+      updatePaymentLink(link.id, { status: "expired" });
+      return;
+    }
 
     try {
       setError("");
@@ -88,7 +95,7 @@ export default function PayLinkPage() {
         <div style={{ marginBottom: 34 }}><NetworkBadge /></div>
         <div className="timer-card">
           <div className="lbl" style={{ marginBottom: 12 }}>EXPIRES IN</div>
-          <Countdown mins={14} />
+          <Countdown mins={link.expiryMinutes || 15} expiresAt={link.expiresAt} />
         </div>
         <p className="m lbl" style={{ color: C.dim }}>PAY PRIVATELY, THEN SHARE THE CLAIM SECRET</p>
       </div>
@@ -104,6 +111,7 @@ export default function PayLinkPage() {
                   ["Reference", link.title],
                   ["Network", link.network],
                   ["Status", link.status],
+                  ["Expires", expired ? "Expired" : "Active"],
                 ].map(([k, v]) => (
                   <div key={k} className="receipt-row">
                     <span>{k}</span>
@@ -112,9 +120,9 @@ export default function PayLinkPage() {
                 ))}
               </div>
               {error && <p style={{ color: C.err, fontSize: 12, marginBottom: 14 }}>{error}</p>}
-              <button className="btn bp full-mobile" style={{ width: "100%", padding: "18px", fontSize: 16 }} onClick={pay}>
+              <button className="btn bp full-mobile" style={{ width: "100%", padding: "18px", fontSize: 16 }} onClick={pay} disabled={expired}>
                 <ShieldSVG sz={18} col="#fff" />
-                {publicKey ? "Pay Privately" : "Connect Phantom to Pay"}
+                {expired ? "Link Expired" : publicKey ? "Pay Privately" : "Connect Phantom to Pay"}
               </button>
             </div>
           )}
