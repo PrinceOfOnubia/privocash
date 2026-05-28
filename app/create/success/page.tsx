@@ -45,7 +45,7 @@ function CreateSuccessContent() {
         <span className="lbl" style={{ color: C.accent, display: "block", marginBottom: 18 }}>PAYMENT LINK READY</span>
         <h1 className="d page-title">Link<br /><em style={{ color: C.accent }}>Created.</em></h1>
         <p className="lead">
-          Share this secure Solana link to receive payment. Payers can open it and send SOL to your connected wallet.
+          Share this private payment link. Payers fund a private deposit and receive a claim secret to share securely.
         </p>
 
         <div className="copy-box">
@@ -75,11 +75,11 @@ function CreateSuccessContent() {
             </div>
             <div className="receipt-list">
               <div className="receipt-row"><span>Reference</span><span>{link.title}</span></div>
-              <div className="receipt-row"><span>Recipient</span><span className="m">{link.recipient.slice(0, 8)}...{link.recipient.slice(-6)}</span></div>
+              <div className="receipt-row"><span>Claim method</span><span className="m">Secret</span></div>
             </div>
             <NetworkBadge />
           </div>
-          <PBanner text="Solana transactions remain public. PrivoCash keeps the payment experience cleaner and more private." />
+          <PBanner text="Claim secrets are not stored in the link or exposed in the URL." />
         </div>
       </div>
     </div>

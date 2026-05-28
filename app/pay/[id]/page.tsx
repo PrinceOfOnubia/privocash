@@ -7,11 +7,12 @@ import { Countdown, Logo, NetworkBadge, PBanner, ShieldSVG, Spin } from "@/compo
 import { C } from "@/lib/constants";
 import {
   getPaymentLink,
-  parseSolanaAddress,
   PaymentLink,
-  sendSolPayment,
+  saveClaimHandoff,
+  solToLamports,
   updatePaymentLink,
 } from "@/lib/payment-service";
+import { depositPrivateSol } from "@/lib/privacycash/privacy-service";
 import { useWallet } from "@/lib/wallet-context";
 
 export default function PayLinkPage() {
@@ -19,12 +20,14 @@ export default function PayLinkPage() {
   const params = useParams();
   const linkId = params?.id as string;
   const { connection } = useConnection();
-  const { publicKey, sendTransaction, openModal } = useWallet();
+  const wallet = useWallet();
+  const { publicKey, openModal } = wallet;
   const [link] = useState<PaymentLink | null>(() =>
     typeof window === "undefined" ? null : getPaymentLink(linkId)
   );
   const [step, setStep] = useState<"ready" | "pending">("ready");
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("");
 
   const pay = async () => {
     if (!publicKey) {
@@ -33,27 +36,33 @@ export default function PayLinkPage() {
     }
     if (!link) return;
 
-    const recipient = parseSolanaAddress(link.recipient);
-    if (!recipient) {
-      setError("This payment link has an invalid recipient address.");
-      return;
-    }
-
     try {
       setError("");
       setStep("pending");
-      const signature = await sendSolPayment({
-        amount: link.amount,
+      setStatus("Preparing private payment...");
+      setStatus("Generating private proof...");
+      const result = await depositPrivateSol({
+        amountLamports: link.amountLamports || solToLamports(link.amount),
         connection,
-        from: publicKey,
-        recipient,
-        sendTransaction,
+        wallet,
       });
-      updatePaymentLink(link.id, { status: "paid", txSignature: signature });
-      router.push(`/pay/success?id=${link.id}&sig=${signature}&amount=${link.amount}`);
+      updatePaymentLink(link.id, {
+        status: "funded",
+        depositSignature: result.depositSignature,
+      });
+      saveClaimHandoff({
+        id: link.id,
+        source: "payment-link",
+        amount: link.amount,
+        secret: result.secret,
+        depositSignature: result.depositSignature,
+        label: link.title,
+      });
+      router.push(`/pay/success?id=${link.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment could not be completed.");
+      setError(err instanceof Error ? err.message : "Private payment could not be completed.");
       setStep("ready");
+      setStatus("");
     }
   };
 
@@ -74,27 +83,26 @@ export default function PayLinkPage() {
     <div className="split">
       <div className="split-left">
         <div style={{ marginBottom: 40 }}><Logo sz={22} /></div>
-        <span className="lbl" style={{ color: C.accent, display: "block", marginBottom: 18 }}>SOLANA PAYMENT REQUEST</span>
+        <span className="lbl" style={{ color: C.accent, display: "block", marginBottom: 18 }}>PRIVATE PAYMENT LINK</span>
         <div className="d amount-hero">{link.amount}</div>
         <div style={{ marginBottom: 34 }}><NetworkBadge /></div>
         <div className="timer-card">
           <div className="lbl" style={{ marginBottom: 12 }}>EXPIRES IN</div>
           <Countdown mins={14} />
         </div>
-        <p className="m lbl" style={{ color: C.dim }}>RECIPIENT WALLET IS NOT SHOWN IN THE REQUEST COPY</p>
+        <p className="m lbl" style={{ color: C.dim }}>PAY PRIVATELY, THEN SHARE THE CLAIM SECRET</p>
       </div>
 
       <div className="split-right">
         <div className="form-shell">
           {step === "ready" && (
             <div className="card form-card">
-              <PBanner text="Solana transactions remain public. PrivoCash keeps the payment experience cleaner and more private." />
+              <PBanner text="This creates a private deposit. If proof generation fails, no public fallback transfer is sent." />
               <div className="receipt-list">
                 {[
                   ["You pay", `${link.amount} ${link.token}`],
                   ["Reference", link.title],
                   ["Network", link.network],
-                  ["Recipient", `${link.recipient.slice(0, 8)}...${link.recipient.slice(-6)}`],
                   ["Status", link.status],
                 ].map(([k, v]) => (
                   <div key={k} className="receipt-row">
@@ -106,7 +114,7 @@ export default function PayLinkPage() {
               {error && <p style={{ color: C.err, fontSize: 12, marginBottom: 14 }}>{error}</p>}
               <button className="btn bp full-mobile" style={{ width: "100%", padding: "18px", fontSize: 16 }} onClick={pay}>
                 <ShieldSVG sz={18} col="#fff" />
-                {publicKey ? "Pay with Phantom" : "Connect Phantom to Pay"}
+                {publicKey ? "Pay Privately" : "Connect Phantom to Pay"}
               </button>
             </div>
           )}
@@ -114,8 +122,8 @@ export default function PayLinkPage() {
           {step === "pending" && (
             <div className="card form-card center-card">
               <div className="success-orb"><Spin /></div>
-              <h3 className="d modal-title">Submitting Payment</h3>
-              <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.65 }}>Confirm the transaction in Phantom to complete this payment.</p>
+              <h3 className="d modal-title">Preparing Private Payment</h3>
+              <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.65 }}>{status || "Generating private proof. Confirm the private deposit in Phantom when prompted."}</p>
               <div className="sb" style={{ marginTop: 28 }} />
             </div>
           )}

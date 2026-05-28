@@ -42,7 +42,6 @@ export default function CreatePage() {
       amount: form.amount,
       title: form.title,
       note: form.note,
-      recipient: publicKey.toBase58(),
     });
     setTimeout(() => router.push(`/create/success?id=${link.id}`), 400);
   };
@@ -55,13 +54,13 @@ export default function CreatePage() {
           Create a<br /><em style={{ color: C.accent }}>Private Link.</em>
         </h1>
         <p className="lead">
-          Generate a secure Solana payment link. Share it anywhere and let recipients claim privately without showing your primary wallet in the payment request.
+          Generate a private payment link. The payer creates a private deposit and receives a claim secret to share securely.
         </p>
         <div className="feature-list">
           {[
             { icon: "01", t: "Connect Phantom", d: "Use a Solana wallet with no account or email." },
             { icon: "02", t: "Create a secure link", d: "Set a SOL amount, reference, and optional note." },
-            { icon: "03", t: "Share and get paid", d: "Payers open the link and send SOL to your connected wallet." },
+            { icon: "03", t: "Share and claim", d: "Payers fund a private deposit, then share the claim secret securely." },
           ].map((f) => (
             <div key={f.t} className="feature-row">
               <span className="m feature-index">{f.icon}</span>
@@ -93,7 +92,7 @@ export default function CreatePage() {
                 <label className="lbl" style={{ display: "block", marginBottom: 10 }}>Network</label>
                 <div className="network-lock">
                   <NetworkBadge />
-                  <span className="m" style={{ color: C.dim, fontSize: 12 }}>SOL payments</span>
+                  <span className="m" style={{ color: C.dim, fontSize: 12 }}>Private deposit</span>
                 </div>
               </div>
 
@@ -112,7 +111,7 @@ export default function CreatePage() {
                 <input className="inp" placeholder="Invoice, service, or short memo" value={form.note} onChange={(e) => set("note", e.target.value)} />
               </div>
 
-              <PBanner text="Solana transactions remain public. PrivoCash keeps the request experience cleaner and more private." />
+              <PBanner text="Payment links create private deposits. Claim secrets are shown only after a successful private payment." />
 
               <button className="btn bp full-mobile" style={{ width: "100%", padding: "17px", fontSize: 15 }} onClick={go}>
                 {loading ? <><Spin /> Creating...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Create Private Link" : "Connect Phantom"}</>}

@@ -90,8 +90,8 @@ export const NetworkBadge = () => (
 );
 
 // ── Status Tag ─────────────────────────────────────────────────
-const tagMap: Record<string,string> = { active:"tok", paid:"tpa", expired:"tex" };
-const labMap: Record<string,string> = { active:"Active", paid:"Paid", claimed:"Claimed", expired:"Expired" };
+const tagMap: Record<string,string> = { active:"tok", created:"tok", funded:"tpa", paid:"tpa", claimed:"tpa", failed:"tex", expired:"tex" };
+const labMap: Record<string,string> = { active:"Active", created:"Created", funded:"Funded", paid:"Paid", claimed:"Claimed", failed:"Failed", expired:"Expired" };
 export const STag = ({ s }: { s: string }) => (
   <span className={`tag ${tagMap[s]||"tok"}`}>{labMap[s]||s}</span>
 );

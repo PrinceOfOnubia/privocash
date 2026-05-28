@@ -95,8 +95,8 @@ export default function DashboardPage() {
         <div className="stats-grid">
           {[
             ["Payment Links", String(links.length), "Created"],
-            ["Active Links", String(links.filter((link) => link.status === "active").length), "Ready to pay"],
-            ["Private SOL Payments", String(payments.length), "Direct sends"],
+            ["Funded Links", String(links.filter((link) => link.status === "funded").length), "Private deposits"],
+            ["Private SOL Payments", String(payments.length), "Deposits created"],
             ["Network", "Solana", "SOL only"],
           ].map(([l, v, s]) => (
             <div key={l} className="card stat-card">
@@ -143,8 +143,10 @@ export default function DashboardPage() {
               <div key={payment.id} className="table-row">
                 <div>
                   <div className="activity-type">Private payment</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{payment.note || "Direct SOL payment"}</div>
-                  <div className="m" style={{ fontSize: 11, color: C.dim, marginTop: 3 }}>to {payment.recipient.slice(0, 8)}...{payment.recipient.slice(-6)} · {payment.date}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{payment.note || "Private SOL deposit"}</div>
+                  <div className="m" style={{ fontSize: 11, color: C.dim, marginTop: 3 }}>
+                    {payment.recipient ? `for ${payment.recipient.slice(0, 8)}...${payment.recipient.slice(-6)}` : "claim secret generated"} · {payment.date}
+                  </div>
                 </div>
                 <span className="m">{payment.amount} {payment.token}</span>
                 <NetworkBadge />
@@ -152,11 +154,11 @@ export default function DashboardPage() {
                 <STag s="paid" />
                 <div className="row-actions">
                   <button className="btn bo" onClick={async () => {
-                    await navigator.clipboard?.writeText(payment.txSignature);
+                    await navigator.clipboard?.writeText(payment.depositSignature);
                     setCopied(payment.id);
                     setTimeout(() => setCopied(null), 1800);
                   }}>{copied === payment.id ? "Copied" : "Copy Sig"}</button>
-                  <button className="btn bs" onClick={() => router.push("/send")}>Repeat</button>
+                  <button className="btn bs" onClick={() => router.push("/claim")}>Claim</button>
                 </div>
               </div>
             ))}

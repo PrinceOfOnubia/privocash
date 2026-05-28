@@ -1,57 +1,61 @@
-import {
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { SOLANA_NETWORK } from "./constants";
 
-export type PaymentStatus = "active" | "paid" | "claimed" | "expired";
+export type PaymentStatus = "created" | "funded" | "claimed" | "failed" | "expired";
 
 export interface PaymentLink {
   id: string;
+  type: "payment-link";
   title: string;
   amount: string;
+  amountLamports: number;
   token: "SOL";
   network: typeof SOLANA_NETWORK.label;
   status: PaymentStatus;
   views: number;
   date: string;
-  recipient: string;
+  createdAt: string;
+  updatedAt: string;
+  recipient?: string;
   note?: string;
-  txSignature?: string;
+  depositSignature?: string;
+  withdrawSignature?: string;
 }
 
 export interface PrivatePayment {
   id: string;
   type: "private-payment";
-  recipient: string;
   amount: string;
+  amountLamports: number;
   token: "SOL";
   network: typeof SOLANA_NETWORK.label;
-  status: "sent" | "pending";
+  status: "funded" | "claimed" | "failed";
   date: string;
+  createdAt: string;
+  updatedAt: string;
+  recipient?: string;
   note?: string;
-  txSignature: string;
+  depositSignature: string;
+  withdrawSignature?: string;
 }
 
 export interface CreatePaymentInput {
   amount: string;
   title: string;
   note?: string;
-  recipient: string;
+  recipient?: string;
 }
 
 export interface CreatePrivatePaymentInput {
   amount: string;
-  recipient: string;
+  recipient?: string;
   note?: string;
-  txSignature: string;
+  depositSignature: string;
 }
 
 const LINKS_KEY = "privocash.paymentLinks";
 const PRIVATE_PAYMENTS_KEY = "privocash.privatePayments";
+const CLAIM_HANDOFF_KEY = "privocash.claimHandoff";
 
 const today = () =>
   new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date());
@@ -74,20 +78,29 @@ const write = <T,>(key: string, value: T) => {
 const newId = (prefix: string) =>
   `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
+export function solToLamports(amount: string) {
+  return Math.round(Number(amount) * LAMPORTS_PER_SOL);
+}
+
 export function getPaymentLinks(): PaymentLink[] {
   return read<PaymentLink[]>(LINKS_KEY, []);
 }
 
 export function createPaymentLink(input: CreatePaymentInput): PaymentLink {
+  const now = new Date().toISOString();
   const link: PaymentLink = {
     id: newId("sol"),
+    type: "payment-link",
     title: input.title.trim() || "Private Solana payment",
     amount: input.amount,
+    amountLamports: solToLamports(input.amount),
     token: "SOL",
     network: SOLANA_NETWORK.label,
-    status: "active",
+    status: "created",
     views: 0,
     date: today(),
+    createdAt: now,
+    updatedAt: now,
     recipient: input.recipient,
     note: input.note?.trim() || undefined,
   };
@@ -102,7 +115,7 @@ export function getPaymentLink(id: string): PaymentLink | null {
 
 export function updatePaymentLink(id: string, patch: Partial<PaymentLink>) {
   const links = getPaymentLinks().map((link) =>
-    link.id === id ? { ...link, ...patch } : link
+    link.id === id ? { ...link, ...patch, updatedAt: new Date().toISOString() } : link
   );
   write(LINKS_KEY, links);
 }
@@ -112,17 +125,21 @@ export function getPrivatePayments(): PrivatePayment[] {
 }
 
 export function recordPrivatePayment(input: CreatePrivatePaymentInput): PrivatePayment {
+  const now = new Date().toISOString();
   const payment: PrivatePayment = {
     id: newId("pay"),
     type: "private-payment",
-    recipient: input.recipient,
+    recipient: input.recipient?.trim() || undefined,
     amount: input.amount,
+    amountLamports: solToLamports(input.amount),
     token: "SOL",
     network: SOLANA_NETWORK.label,
-    status: "sent",
+    status: "funded",
     date: today(),
+    createdAt: now,
+    updatedAt: now,
     note: input.note?.trim() || undefined,
-    txSignature: input.txSignature,
+    depositSignature: input.depositSignature,
   };
 
   write(PRIVATE_PAYMENTS_KEY, [payment, ...getPrivatePayments()]);
@@ -142,41 +159,40 @@ export function validSolAmount(amount: string) {
   return Number.isFinite(value) && value > 0;
 }
 
-export async function sendSolPayment({
-  amount,
-  connection,
-  from,
-  recipient,
-  sendTransaction,
-}: {
-  amount: string;
-  connection: Connection;
-  from: PublicKey;
-  recipient: PublicKey;
-  sendTransaction: (transaction: Transaction, connection: Connection) => Promise<string>;
-}) {
-  const lamports = Math.round(Number(amount) * LAMPORTS_PER_SOL);
-  const transaction = new Transaction().add(
-    SystemProgram.transfer({
-      fromPubkey: from,
-      toPubkey: recipient,
-      lamports,
-    })
-  );
-
-  transaction.feePayer = from;
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-  transaction.recentBlockhash = blockhash;
-  const signature = await sendTransaction(transaction, connection);
-
-  await connection.confirmTransaction(
-    { signature, blockhash, lastValidBlockHeight },
-    "confirmed"
-  );
-
-  return signature;
-}
-
 export function solanaExplorerUrl(signature: string) {
   return `https://explorer.solana.com/tx/${signature}`;
+}
+
+export interface ClaimHandoff {
+  id: string;
+  amount: string;
+  secret: string;
+  depositSignature: string;
+  source: "payment-link" | "private-payment";
+  label?: string;
+  createdAt: string;
+}
+
+export function saveClaimHandoff(input: Omit<ClaimHandoff, "createdAt">) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(CLAIM_HANDOFF_KEY, JSON.stringify({
+    ...input,
+    createdAt: new Date().toISOString(),
+  }));
+}
+
+export function getClaimHandoff() {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.sessionStorage.getItem(CLAIM_HANDOFF_KEY);
+    return value ? (JSON.parse(value) as ClaimHandoff) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearClaimHandoff() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage?.removeItem(CLAIM_HANDOFF_KEY);
+  window.localStorage.removeItem(CLAIM_HANDOFF_KEY);
 }

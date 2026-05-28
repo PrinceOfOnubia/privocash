@@ -8,9 +8,11 @@ import { C } from "@/lib/constants";
 import {
   parseSolanaAddress,
   recordPrivatePayment,
-  sendSolPayment,
+  saveClaimHandoff,
+  solToLamports,
   validSolAmount,
 } from "@/lib/payment-service";
+import { depositPrivateSol } from "@/lib/privacycash/privacy-service";
 import { useWallet } from "@/lib/wallet-context";
 
 interface Form {
@@ -23,11 +25,13 @@ interface Form {
 export default function SendPage() {
   const router = useRouter();
   const { connection } = useConnection();
-  const { publicKey, sendTransaction, openModal } = useWallet();
+  const wallet = useWallet();
+  const { publicKey, openModal } = wallet;
   const [form, setForm] = useState<Form>({ recipient: "", amount: "", token: "SOL", note: "" });
   const [errs, setErrs] = useState<Partial<Form>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -41,32 +45,42 @@ export default function SendPage() {
       return;
     }
 
-    const recipient = parseSolanaAddress(form.recipient);
+    const recipient = form.recipient.trim() ? parseSolanaAddress(form.recipient) : null;
     const nextErrs: Partial<Form> = {};
-    if (!recipient) nextErrs.recipient = "Enter a valid Solana address";
+    if (form.recipient.trim() && !recipient) nextErrs.recipient = "Enter a valid Solana address";
     if (!validSolAmount(form.amount)) nextErrs.amount = "Enter a valid SOL amount";
     setErrs(nextErrs);
-    if (Object.keys(nextErrs).length || !recipient) return;
+    if (Object.keys(nextErrs).length) return;
 
     try {
       setLoading(true);
-      const signature = await sendSolPayment({
-        amount: form.amount,
+      setStatus("Preparing private payment...");
+      const amountLamports = solToLamports(form.amount);
+      setStatus("Generating private proof...");
+      const result = await depositPrivateSol({
+        amountLamports,
         connection,
-        from: publicKey,
-        recipient,
-        sendTransaction,
+        wallet,
       });
-      recordPrivatePayment({
-        recipient: recipient.toBase58(),
+      const payment = recordPrivatePayment({
+        recipient: recipient?.toBase58(),
         amount: form.amount,
         note: form.note,
-        txSignature: signature,
+        depositSignature: result.depositSignature,
       });
-      router.push(`/send/success?sig=${signature}&amount=${form.amount}`);
+      saveClaimHandoff({
+        id: payment.id,
+        source: "private-payment",
+        amount: form.amount,
+        secret: result.secret,
+        depositSignature: result.depositSignature,
+        label: form.note || "Private SOL payment",
+      });
+      router.push(`/send/success?id=${payment.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Transaction was not completed.");
+      setError(err instanceof Error ? err.message : "Private payment could not be completed.");
       setLoading(false);
+      setStatus("");
     }
   };
 
@@ -76,13 +90,13 @@ export default function SendPage() {
         <span className="lbl" style={{ color: C.accent, display: "block", marginBottom: 18 }}>PAY PRIVATELY</span>
         <h1 className="d page-title">Send SOL<br /><em style={{ color: C.accent }}>Privately.</em></h1>
         <p className="lead">
-          Enter a recipient Solana address and amount. PrivoCash keeps the payment experience cleaner while Solana transactions remain public.
+          Create a private SOL deposit and share the generated claim secret with your recipient.
         </p>
         <div className="feature-list">
           {[
             { i: "01", t: "Connect Phantom", d: "Authorize the transfer from your Solana wallet." },
-            { i: "02", t: "Enter recipient and amount", d: "Pay privately with SOL through a cleaner flow." },
-            { i: "03", t: "Track signature", d: "Review the transaction on Solana Explorer after sending." },
+            { i: "02", t: "Create private deposit", d: "Generate a claim secret after the private payment is confirmed." },
+            { i: "03", t: "Share securely", d: "Send the secret to your recipient so they can claim privately." },
           ].map((f) => (
             <div key={f.t} className="feature-row">
               <span className="m feature-index">{f.i}</span>
@@ -100,7 +114,7 @@ export default function SendPage() {
           <div className="card form-card">
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div>
-                <label className="lbl" style={{ display: "block", marginBottom: 10 }}>Recipient Solana Address</label>
+                <label className="lbl" style={{ display: "block", marginBottom: 10 }}>Recipient Solana Address (optional)</label>
                 <input className="inp" placeholder="Paste recipient Solana address" value={form.recipient} onChange={(e) => set("recipient", e.target.value)} style={errs.recipient ? { borderColor: C.err } : {}} />
                 {errs.recipient && <p style={{ color: C.err, fontSize: 12, marginTop: 6 }}>{errs.recipient}</p>}
               </div>
@@ -120,7 +134,7 @@ export default function SendPage() {
                 <label className="lbl" style={{ display: "block", marginBottom: 10 }}>Network</label>
                 <div className="network-lock">
                   <NetworkBadge />
-                  <span className="m" style={{ color: C.dim, fontSize: 12 }}>Direct SOL transfer</span>
+                  <span className="m" style={{ color: C.dim, fontSize: 12 }}>Private deposit</span>
                 </div>
               </div>
 
@@ -129,11 +143,12 @@ export default function SendPage() {
                 <input className="inp" placeholder="Invoice, payout, or short memo" value={form.note} onChange={(e) => set("note", e.target.value)} />
               </div>
 
-              <PBanner text="Reduce wallet exposure when requesting and sending payments. Solana transactions remain public." />
+              <PBanner text="If private proof generation fails, PrivoCash stops the payment. No public fallback transfer is sent." />
+              {status && <p style={{ color: C.accent, fontSize: 13, lineHeight: 1.6 }}>{status}</p>}
               {error && <p style={{ color: C.err, fontSize: 13, lineHeight: 1.6 }}>{error}</p>}
 
               <button className="btn bp full-mobile" style={{ width: "100%", padding: "17px", fontSize: 15 }} onClick={submit} disabled={loading}>
-                {loading ? <><Spin /> Sending...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Pay Privately" : "Connect Phantom"}</>}
+                {loading ? <><Spin /> Confirm in Phantom...</> : <><ShieldSVG sz={17} col="#fff" />{publicKey ? "Pay Privately" : "Connect Phantom"}</>}
               </button>
             </div>
           </div>

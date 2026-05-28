@@ -11,6 +11,7 @@ import { C } from "@/lib/constants";
 const NAV = [
   { href: "/create", label: "Create Link" },
   { href: "/send", label: "Pay Privately" },
+  { href: "/claim", label: "Claim" },
   { href: "/dashboard", label: "Dashboard" },
 ];
 

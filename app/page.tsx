@@ -46,7 +46,7 @@ export default function Home() {
               <span className="btn bo bsm">Copy</span>
             </div>
           </div>
-          <PBanner text="Secure payment links and direct SOL payments in one simple Phantom flow." />
+          <PBanner text="Secure payment links and private SOL deposits in one simple Phantom flow." />
         </div>
       </section>
 
@@ -59,7 +59,7 @@ export default function Home() {
           {[
             ["01", "Connect Solana wallet", "Phantom is the primary wallet flow for PrivoCash."],
             ["02", "Create secure links", "The recipient creates a request link, shares it, and the payer opens the link to pay."],
-            ["03", "Pay privately", "The sender enters a recipient address and amount to send SOL through a cleaner private flow."],
+            ["03", "Pay privately", "The sender creates a private deposit and shares the claim secret securely."],
           ].map(([n, t, d]) => (
             <div key={n} className="step-card">
               <span className="m feature-index">{n}</span>
@@ -75,7 +75,7 @@ export default function Home() {
           <span className="lbl" style={{ color: C.accent }}>WHY PRIVOCASH</span>
           <h2 className="d section-title">Payment privacy without the extra complexity.</h2>
           <p className="body-copy">
-            PrivoCash gives Solana users a cleaner way to request and send payments. Create a secure link, share it, or pay directly from Phantom in a simple private-payment flow.
+            PrivoCash gives Solana users a cleaner way to request and send payments. Create a secure link, share it, or start a private deposit from Phantom in a simple private-payment flow.
           </p>
         </div>
         <div className="card form-card">
@@ -107,6 +107,7 @@ export default function Home() {
           <div className="footer-links">
             <Link href="/create" className="nl">Create Link</Link>
             <Link href="/send" className="nl">Pay Privately</Link>
+            <Link href="/claim" className="nl">Claim</Link>
             <Link href="/dashboard" className="nl">Dashboard</Link>
             <a href="mailto:hello@privo.cash" className="nl">Contact</a>
           </div>
