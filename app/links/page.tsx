@@ -1,19 +1,31 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NetworkBadge, ShieldSVG, STag } from "@/components/Atoms";
 import { C } from "@/lib/constants";
-import { getPaymentLinks, PaymentLink } from "@/lib/payment-service";
+import { getPaymentLinks, getPaymentLinksRecord, PaymentLink } from "@/lib/payment-service";
 import { useWallet } from "@/lib/wallet-context";
 
 export default function LinksPage() {
   const router = useRouter();
-  const { wallet, walletName, openModal } = useWallet();
+  const { wallet, walletName, publicKey, openModal } = useWallet();
   const [copied, setCopied] = useState<string | null>(null);
   const [links] = useState<PaymentLink[]>(() =>
     typeof window === "undefined" ? [] : getPaymentLinks()
   );
+  const [records, setRecords] = useState(links);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!publicKey) return;
+    getPaymentLinksRecord(publicKey.toBase58()).then((remoteLinks) => {
+      if (!cancelled) setRecords(remoteLinks);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [publicKey]);
 
   const copy = async (id: string) => {
     const origin = typeof window === "undefined" ? "https://privo.cash" : window.location.origin;
@@ -61,7 +73,7 @@ export default function LinksPage() {
           </div>
         </div>
 
-        {links.length === 0 ? (
+        {records.length === 0 ? (
           <div className="card empty-state">
             <ShieldSVG sz={34} />
             <h3 className="d">No links yet</h3>
@@ -73,7 +85,7 @@ export default function LinksPage() {
             <div className="table-head">
               {["Link", "Amount", "Network", "Views", "Status", "Actions"].map((h) => <span key={h} className="lbl">{h}</span>)}
             </div>
-            {links.map((link) => (
+            {records.map((link) => (
               <div key={link.id} className="table-row">
                 <div>
                   <div className="activity-type">Payment link</div>

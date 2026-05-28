@@ -56,6 +56,7 @@ export interface CreatePrivatePaymentInput {
   recipient?: string;
   note?: string;
   depositSignature: string;
+  ownerWallet?: string;
 }
 
 const LINKS_KEY = "privocash.paymentLinks";
@@ -128,8 +129,53 @@ export function createPaymentLink(input: CreatePaymentInput): PaymentLink {
   return link;
 }
 
+export function savePaymentLink(link: PaymentLink) {
+  const links = getPaymentLinks();
+  write(LINKS_KEY, [link, ...links.filter((item) => item.id !== link.id)]);
+}
+
+async function safeJson<T>(request: Promise<Response>): Promise<T | null> {
+  try {
+    const response = await request;
+    if (!response.ok) return null;
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function createPaymentLinkRecord(input: CreatePaymentInput): Promise<PaymentLink> {
+  const remote = await safeJson<{ link: PaymentLink }>(
+    fetch("/api/payment-links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    })
+  );
+
+  if (remote?.link) {
+    savePaymentLink(remote.link);
+    return remote.link;
+  }
+
+  return createPaymentLink(input);
+}
+
 export function getPaymentLink(id: string): PaymentLink | null {
   return getPaymentLinks().find((link) => link.id === id) ?? null;
+}
+
+export async function getPaymentLinkRecord(id: string, incrementViews = false): Promise<PaymentLink | null> {
+  const remote = await safeJson<{ link: PaymentLink }>(
+    fetch(`/api/payment-links/${id}${incrementViews ? "?view=1" : ""}`, { cache: "no-store" })
+  );
+
+  if (remote?.link) {
+    savePaymentLink(remote.link);
+    return remote.link;
+  }
+
+  return getPaymentLink(id);
 }
 
 export function updatePaymentLink(id: string, patch: Partial<PaymentLink>) {
@@ -139,8 +185,51 @@ export function updatePaymentLink(id: string, patch: Partial<PaymentLink>) {
   write(LINKS_KEY, links);
 }
 
+export async function updatePaymentLinkRecord(id: string, patch: Partial<PaymentLink>) {
+  updatePaymentLink(id, patch);
+  const remote = await safeJson<{ link: PaymentLink }>(
+    fetch(`/api/payment-links/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    })
+  );
+
+  if (remote?.link) savePaymentLink(remote.link);
+  return remote?.link ?? getPaymentLink(id);
+}
+
 export function getPrivatePayments(): PrivatePayment[] {
   return read<PrivatePayment[]>(PRIVATE_PAYMENTS_KEY, []);
+}
+
+export async function getPaymentLinksRecord(creator?: string): Promise<PaymentLink[]> {
+  const query = creator ? `?creator=${encodeURIComponent(creator)}` : "";
+  const remote = await safeJson<{ links: PaymentLink[] }>(
+    fetch(`/api/payment-links${query}`, { cache: "no-store" })
+  );
+
+  if (remote?.links) {
+    write(LINKS_KEY, remote.links);
+    return remote.links;
+  }
+
+  const links = getPaymentLinks();
+  return creator ? links.filter((link) => link.creator === creator) : links;
+}
+
+export async function getPrivatePaymentsRecord(ownerWallet?: string): Promise<PrivatePayment[]> {
+  const query = ownerWallet ? `?ownerWallet=${encodeURIComponent(ownerWallet)}` : "";
+  const remote = await safeJson<{ payments: PrivatePayment[] }>(
+    fetch(`/api/private-payments${query}`, { cache: "no-store" })
+  );
+
+  if (remote?.payments) {
+    write(PRIVATE_PAYMENTS_KEY, remote.payments);
+    return remote.payments;
+  }
+
+  return getPrivatePayments();
 }
 
 export function recordPrivatePayment(input: CreatePrivatePaymentInput): PrivatePayment {
@@ -163,6 +252,28 @@ export function recordPrivatePayment(input: CreatePrivatePaymentInput): PrivateP
 
   write(PRIVATE_PAYMENTS_KEY, [payment, ...getPrivatePayments()]);
   return payment;
+}
+
+export function savePrivatePayment(payment: PrivatePayment) {
+  const payments = getPrivatePayments();
+  write(PRIVATE_PAYMENTS_KEY, [payment, ...payments.filter((item) => item.id !== payment.id)]);
+}
+
+export async function recordPrivatePaymentRecord(input: CreatePrivatePaymentInput): Promise<PrivatePayment> {
+  const remote = await safeJson<{ payment: PrivatePayment }>(
+    fetch("/api/private-payments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    })
+  );
+
+  if (remote?.payment) {
+    savePrivatePayment(remote.payment);
+    return remote.payment;
+  }
+
+  return recordPrivatePayment(input);
 }
 
 export function parseSolanaAddress(address: string): PublicKey | null {

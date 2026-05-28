@@ -7,7 +7,7 @@ import { NetworkBadge, PBanner, ShieldSVG, Spin, TokenSelect } from "@/component
 import { C } from "@/lib/constants";
 import {
   parseSolanaAddress,
-  recordPrivatePayment,
+  recordPrivatePaymentRecord,
   saveClaimHandoff,
   solToLamports,
   validSolAmount,
@@ -62,11 +62,12 @@ export default function SendPage() {
         connection,
         wallet,
       });
-      const payment = recordPrivatePayment({
+      const payment = await recordPrivatePaymentRecord({
         recipient: recipient?.toBase58(),
         amount: form.amount,
         note: form.note,
         depositSignature: result.depositSignature,
+        ownerWallet: publicKey.toBase58(),
       });
       saveClaimHandoff({
         id: payment.id,

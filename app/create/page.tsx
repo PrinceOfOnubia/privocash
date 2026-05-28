@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ExpiryPills, NetworkBadge, PBanner, ShieldSVG, Spin, TokenSelect } from "@/components/Atoms";
 import { C } from "@/lib/constants";
-import { createPaymentLink } from "@/lib/payment-service";
+import { createPaymentLinkRecord } from "@/lib/payment-service";
 import { useWallet } from "@/lib/wallet-context";
 
 interface Form {
@@ -27,7 +27,7 @@ export default function CreatePage() {
     setErrs((e) => ({ ...e, [k]: "" }));
   };
 
-  const go = () => {
+  const go = async () => {
     if (!publicKey) {
       openModal();
       return;
@@ -38,14 +38,19 @@ export default function CreatePage() {
     }
 
     setLoading(true);
-    const link = createPaymentLink({
-      amount: form.amount,
-      title: form.title,
-      note: form.note,
-      expiry: form.expiry,
-      creator: publicKey.toBase58(),
-    });
-    setTimeout(() => router.push(`/create/success?id=${link.id}`), 400);
+    try {
+      const link = await createPaymentLinkRecord({
+        amount: form.amount,
+        title: form.title,
+        note: form.note,
+        expiry: form.expiry,
+        creator: publicKey.toBase58(),
+      });
+      setTimeout(() => router.push(`/create/success?id=${link.id}`), 400);
+    } catch {
+      setErrs({ amount: "Payment link could not be created. Try again." });
+      setLoading(false);
+    }
   };
 
   return (

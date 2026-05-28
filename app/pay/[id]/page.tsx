@@ -1,17 +1,19 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { Countdown, Logo, NetworkBadge, PBanner, ShieldSVG, Spin } from "@/components/Atoms";
 import { C } from "@/lib/constants";
 import {
   getPaymentLink,
+  getPaymentLinkRecord,
   isExpired,
   PaymentLink,
   saveClaimHandoff,
   solToLamports,
   updatePaymentLink,
+  updatePaymentLinkRecord,
 } from "@/lib/payment-service";
 import { depositPrivateSol } from "@/lib/privacycash/privacy-service";
 import { useWallet } from "@/lib/wallet-context";
@@ -23,15 +25,29 @@ export default function PayLinkPage() {
   const { connection } = useConnection();
   const wallet = useWallet();
   const { publicKey, openModal } = wallet;
-  const [link] = useState<PaymentLink | null>(() =>
+  const [link, setLink] = useState<PaymentLink | null>(() =>
     typeof window === "undefined" ? null : getPaymentLink(linkId)
   );
+  const [loadingLink, setLoadingLink] = useState(true);
   const expired = link ? isExpired(link) : false;
   const isCreator = !!publicKey && !!link?.creator && link.creator === publicKey.toBase58();
   const [step, setStep] = useState<"ready" | "pending">("ready");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    getPaymentLinkRecord(linkId, true).then((record) => {
+      if (!cancelled) {
+        setLink(record);
+        setLoadingLink(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [linkId]);
 
   const pay = async () => {
     if (!publicKey) {
@@ -47,7 +63,7 @@ export default function PayLinkPage() {
     }
     if (expired) {
       setError("This payment link has expired. Ask the recipient to create a new link.");
-      updatePaymentLink(link.id, { status: "expired" });
+      await updatePaymentLinkRecord(link.id, { status: "expired" });
       return;
     }
 
@@ -62,6 +78,10 @@ export default function PayLinkPage() {
         wallet,
       });
       updatePaymentLink(link.id, {
+        status: "funded",
+        depositSignature: result.depositSignature,
+      });
+      await updatePaymentLinkRecord(link.id, {
         status: "funded",
         depositSignature: result.depositSignature,
       });
@@ -80,6 +100,19 @@ export default function PayLinkPage() {
       setStatus("");
     }
   };
+
+  if (loadingLink) {
+    return (
+      <div className="split">
+        <div className="split-left">
+          <Logo sz={22} />
+          <span className="lbl" style={{ color: C.accent, display: "block", marginTop: 40, marginBottom: 18 }}>PAYMENT REQUEST</span>
+          <h1 className="d page-title">Loading<br /><em style={{ color: C.accent }}>Payment Link.</em></h1>
+          <p className="lead">Fetching the private payment request.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!link) {
     return (

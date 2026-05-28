@@ -5,7 +5,14 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { useEffect, useMemo, useState } from "react";
 import { NetworkBadge, ShieldSVG, STag } from "@/components/Atoms";
 import { C } from "@/lib/constants";
-import { getPaymentLinks, getPrivatePayments, PaymentLink, PrivatePayment } from "@/lib/payment-service";
+import {
+  getPaymentLinks,
+  getPaymentLinksRecord,
+  getPrivatePayments,
+  getPrivatePaymentsRecord,
+  PaymentLink,
+  PrivatePayment,
+} from "@/lib/payment-service";
 import { useWallet } from "@/lib/wallet-context";
 
 export default function DashboardPage() {
@@ -14,10 +21,10 @@ export default function DashboardPage() {
   const { wallet, walletName, publicKey, openModal } = useWallet();
   const [copied, setCopied] = useState<string | null>(null);
   const [balance, setBalance] = useState<string>("...");
-  const [links] = useState<PaymentLink[]>(() =>
+  const [links, setLinks] = useState<PaymentLink[]>(() =>
     typeof window === "undefined" ? [] : getPaymentLinks()
   );
-  const [payments] = useState<PrivatePayment[]>(() =>
+  const [payments, setPayments] = useState<PrivatePayment[]>(() =>
     typeof window === "undefined" ? [] : getPrivatePayments()
   );
 
@@ -35,6 +42,23 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [connection, publicKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!publicKey) return;
+    Promise.all([
+      getPaymentLinksRecord(publicKey.toBase58()),
+      getPrivatePaymentsRecord(publicKey.toBase58()),
+    ]).then(([remoteLinks, remotePayments]) => {
+      if (!cancelled) {
+        setLinks(remoteLinks);
+        setPayments(remotePayments);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [publicKey]);
 
   const copy = async (id: string) => {
     const origin = typeof window === "undefined" ? "https://privo.cash" : window.location.origin;
